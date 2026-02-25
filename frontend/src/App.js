@@ -16,6 +16,7 @@ import MinistriesPage from "./pages/church/MinistriesPage";
 import EventsPage from "./pages/church/EventsPage";
 import FinancialPage from "./pages/church/FinancialPage";
 import CommunicationPage from "./pages/church/CommunicationPage";
+import DiscipleshipPage from "./pages/church/DiscipleshipPage";
 import SettingsPage from "./pages/church/SettingsPage";
 import PaymentSuccess from "./pages/PaymentSuccess";
 
