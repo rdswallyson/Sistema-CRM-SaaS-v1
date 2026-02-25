@@ -775,6 +775,318 @@ async def get_church_dashboard(current_user: dict = Depends(require_church_admin
         "growth_percentage": 12.5  # Mock
     }
 
+# ==================== DISCIPLESHIP - TRAILS ====================
+@api_router.post("/church/discipleship/trails")
+async def create_trail(trail_data: DiscipleshipTrailCreate, current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    if not tenant_id:
+        raise HTTPException(status_code=400, detail="Tenant ID não encontrado")
+    
+    trail = DiscipleshipTrail(**trail_data.model_dump(), tenant_id=tenant_id)
+    doc = trail.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    await db.discipleship_trails.insert_one(doc)
+    return trail
+
+@api_router.get("/church/discipleship/trails")
+async def list_trails(current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    query = {"tenant_id": tenant_id} if tenant_id else {}
+    trails = await db.discipleship_trails.find(query, {"_id": 0}).to_list(100)
+    return trails
+
+@api_router.get("/church/discipleship/trails/{trail_id}")
+async def get_trail(trail_id: str, current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    query = {"id": trail_id}
+    if tenant_id:
+        query["tenant_id"] = tenant_id
+    
+    trail = await db.discipleship_trails.find_one(query, {"_id": 0})
+    if not trail:
+        raise HTTPException(status_code=404, detail="Trilha não encontrada")
+    return trail
+
+@api_router.put("/church/discipleship/trails/{trail_id}")
+async def update_trail(trail_id: str, updates: Dict[str, Any], current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    query = {"id": trail_id}
+    if tenant_id:
+        query["tenant_id"] = tenant_id
+    
+    result = await db.discipleship_trails.update_one(query, {"$set": updates})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Trilha não encontrada")
+    return {"message": "Trilha atualizada com sucesso"}
+
+@api_router.delete("/church/discipleship/trails/{trail_id}")
+async def delete_trail(trail_id: str, current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    query = {"id": trail_id}
+    if tenant_id:
+        query["tenant_id"] = tenant_id
+    
+    result = await db.discipleship_trails.delete_one(query)
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Trilha não encontrada")
+    return {"message": "Trilha removida com sucesso"}
+
+@api_router.post("/church/discipleship/trails/{trail_id}/steps")
+async def add_trail_step(trail_id: str, step_data: TrailStepBase, current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    query = {"id": trail_id}
+    if tenant_id:
+        query["tenant_id"] = tenant_id
+    
+    step = TrailStep(**step_data.model_dump())
+    result = await db.discipleship_trails.update_one(
+        query,
+        {"$push": {"steps": step.model_dump()}}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Trilha não encontrada")
+    return {"message": "Etapa adicionada com sucesso", "step_id": step.id}
+
+# ==================== DISCIPLESHIP - PROGRESS ====================
+@api_router.post("/church/discipleship/enroll")
+async def enroll_member_in_trail(
+    member_id: str,
+    trail_id: str,
+    mentor_id: Optional[str] = None,
+    current_user: dict = Depends(require_church_admin)
+):
+    tenant_id = current_user.get('tenant_id')
+    if not tenant_id:
+        raise HTTPException(status_code=400, detail="Tenant ID não encontrado")
+    
+    # Check if already enrolled
+    existing = await db.member_trail_progress.find_one({
+        "tenant_id": tenant_id,
+        "member_id": member_id,
+        "trail_id": trail_id,
+        "status": {"$ne": "completed"}
+    }, {"_id": 0})
+    
+    if existing:
+        raise HTTPException(status_code=400, detail="Membro já está inscrito nesta trilha")
+    
+    progress = MemberTrailProgress(
+        member_id=member_id,
+        trail_id=trail_id,
+        mentor_id=mentor_id,
+        tenant_id=tenant_id,
+        status=DiscipleshipStatus.IN_PROGRESS,
+        started_at=datetime.now(timezone.utc)
+    )
+    doc = progress.model_dump()
+    doc['started_at'] = doc['started_at'].isoformat() if doc['started_at'] else None
+    doc['completed_at'] = doc['completed_at'].isoformat() if doc['completed_at'] else None
+    doc['updated_at'] = doc['updated_at'].isoformat()
+    await db.member_trail_progress.insert_one(doc)
+    
+    return {"message": "Membro inscrito na trilha com sucesso", "progress_id": progress.id}
+
+@api_router.get("/church/discipleship/progress")
+async def list_all_progress(current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    query = {"tenant_id": tenant_id} if tenant_id else {}
+    progress_list = await db.member_trail_progress.find(query, {"_id": 0}).to_list(1000)
+    return progress_list
+
+@api_router.get("/church/discipleship/progress/member/{member_id}")
+async def get_member_progress(member_id: str, current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    query = {"member_id": member_id}
+    if tenant_id:
+        query["tenant_id"] = tenant_id
+    
+    progress_list = await db.member_trail_progress.find(query, {"_id": 0}).to_list(100)
+    return progress_list
+
+@api_router.put("/church/discipleship/progress/{progress_id}/complete-step")
+async def complete_trail_step(progress_id: str, step_id: str, current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    query = {"id": progress_id}
+    if tenant_id:
+        query["tenant_id"] = tenant_id
+    
+    progress = await db.member_trail_progress.find_one(query, {"_id": 0})
+    if not progress:
+        raise HTTPException(status_code=404, detail="Progresso não encontrado")
+    
+    completed_steps = progress.get('completed_steps', [])
+    if step_id not in completed_steps:
+        completed_steps.append(step_id)
+    
+    current_step = progress.get('current_step', 0) + 1
+    
+    await db.member_trail_progress.update_one(
+        query,
+        {"$set": {
+            "completed_steps": completed_steps,
+            "current_step": current_step,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    return {"message": "Etapa concluída com sucesso", "current_step": current_step}
+
+@api_router.put("/church/discipleship/progress/{progress_id}/complete")
+async def complete_trail(progress_id: str, current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    query = {"id": progress_id}
+    if tenant_id:
+        query["tenant_id"] = tenant_id
+    
+    result = await db.member_trail_progress.update_one(
+        query,
+        {"$set": {
+            "status": "completed",
+            "completed_at": datetime.now(timezone.utc).isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Progresso não encontrado")
+    
+    return {"message": "Trilha concluída com sucesso!"}
+
+# ==================== DISCIPLESHIP - MENTORSHIP ====================
+@api_router.post("/church/discipleship/mentorship")
+async def create_mentorship(mentorship_data: MentorshipBase, current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    if not tenant_id:
+        raise HTTPException(status_code=400, detail="Tenant ID não encontrado")
+    
+    mentorship = Mentorship(**mentorship_data.model_dump(), tenant_id=tenant_id)
+    doc = mentorship.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    await db.mentorships.insert_one(doc)
+    return mentorship
+
+@api_router.get("/church/discipleship/mentorship")
+async def list_mentorships(current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    query = {"tenant_id": tenant_id} if tenant_id else {}
+    mentorships = await db.mentorships.find(query, {"_id": 0}).to_list(100)
+    return mentorships
+
+@api_router.get("/church/discipleship/mentorship/mentor/{mentor_id}")
+async def get_mentor_disciples(mentor_id: str, current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    query = {"mentor_id": mentor_id, "is_active": True}
+    if tenant_id:
+        query["tenant_id"] = tenant_id
+    
+    mentorships = await db.mentorships.find(query, {"_id": 0}).to_list(100)
+    return mentorships
+
+@api_router.get("/church/discipleship/stats")
+async def get_discipleship_stats(current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    if not tenant_id:
+        raise HTTPException(status_code=400, detail="Tenant ID não encontrado")
+    
+    total_trails = await db.discipleship_trails.count_documents({"tenant_id": tenant_id})
+    total_enrolled = await db.member_trail_progress.count_documents({"tenant_id": tenant_id})
+    in_progress = await db.member_trail_progress.count_documents({"tenant_id": tenant_id, "status": "in_progress"})
+    completed = await db.member_trail_progress.count_documents({"tenant_id": tenant_id, "status": "completed"})
+    total_mentorships = await db.mentorships.count_documents({"tenant_id": tenant_id, "is_active": True})
+    
+    return {
+        "total_trails": total_trails,
+        "total_enrolled": total_enrolled,
+        "in_progress": in_progress,
+        "completed": completed,
+        "completion_rate": round((completed / total_enrolled * 100) if total_enrolled > 0 else 0, 1),
+        "total_mentorships": total_mentorships
+    }
+
+@api_router.post("/seed/discipleship-trails")
+async def seed_discipleship_trails():
+    """Create default discipleship trails"""
+    default_trails = [
+        {
+            "name": "Primeiros Passos",
+            "description": "Trilha para novos convertidos conhecerem os fundamentos da fé",
+            "difficulty": "beginner",
+            "category": "new_convert",
+            "estimated_weeks": 4,
+            "steps": [
+                {"id": str(uuid.uuid4()), "title": "Quem é Jesus?", "description": "Conhecendo o Salvador", "order": 1, "content_type": "text", "duration_minutes": 30},
+                {"id": str(uuid.uuid4()), "title": "A Bíblia", "description": "Entendendo a Palavra de Deus", "order": 2, "content_type": "text", "duration_minutes": 30},
+                {"id": str(uuid.uuid4()), "title": "Oração", "description": "Aprendendo a se comunicar com Deus", "order": 3, "content_type": "text", "duration_minutes": 30},
+                {"id": str(uuid.uuid4()), "title": "A Igreja", "description": "A importância da comunhão", "order": 4, "content_type": "text", "duration_minutes": 30},
+            ]
+        },
+        {
+            "name": "Preparação para o Batismo",
+            "description": "Estudo preparatório para o batismo nas águas",
+            "difficulty": "beginner",
+            "category": "baptism",
+            "estimated_weeks": 3,
+            "steps": [
+                {"id": str(uuid.uuid4()), "title": "O Significado do Batismo", "description": "Por que nos batizamos?", "order": 1, "content_type": "text", "duration_minutes": 45},
+                {"id": str(uuid.uuid4()), "title": "Arrependimento e Confissão", "description": "Preparando o coração", "order": 2, "content_type": "text", "duration_minutes": 45},
+                {"id": str(uuid.uuid4()), "title": "Nova Vida em Cristo", "description": "O que muda após o batismo", "order": 3, "content_type": "text", "duration_minutes": 45},
+            ]
+        },
+        {
+            "name": "Crescimento Espiritual",
+            "description": "Aprofundando sua caminhada com Deus",
+            "difficulty": "intermediate",
+            "category": "spiritual_growth",
+            "estimated_weeks": 8,
+            "steps": [
+                {"id": str(uuid.uuid4()), "title": "Vida Devocional", "description": "Estabelecendo uma rotina com Deus", "order": 1, "content_type": "text", "duration_minutes": 40},
+                {"id": str(uuid.uuid4()), "title": "Estudo Bíblico", "description": "Métodos de estudo da Palavra", "order": 2, "content_type": "text", "duration_minutes": 40},
+                {"id": str(uuid.uuid4()), "title": "Dons Espirituais", "description": "Descobrindo seus dons", "order": 3, "content_type": "quiz", "duration_minutes": 60},
+                {"id": str(uuid.uuid4()), "title": "Servindo na Igreja", "description": "Encontrando seu lugar no corpo", "order": 4, "content_type": "task", "duration_minutes": 30},
+            ]
+        },
+        {
+            "name": "Formação de Líderes",
+            "description": "Desenvolvendo liderança segundo o coração de Deus",
+            "difficulty": "advanced",
+            "category": "leadership",
+            "estimated_weeks": 12,
+            "steps": [
+                {"id": str(uuid.uuid4()), "title": "O Líder Servo", "description": "Princípios de liderança bíblica", "order": 1, "content_type": "text", "duration_minutes": 60},
+                {"id": str(uuid.uuid4()), "title": "Caráter do Líder", "description": "Integridade e santidade", "order": 2, "content_type": "text", "duration_minutes": 60},
+                {"id": str(uuid.uuid4()), "title": "Cuidando de Pessoas", "description": "Pastoreio e aconselhamento", "order": 3, "content_type": "text", "duration_minutes": 60},
+                {"id": str(uuid.uuid4()), "title": "Multiplicação", "description": "Formando novos líderes", "order": 4, "content_type": "task", "duration_minutes": 90},
+            ]
+        },
+        {
+            "name": "Família Abençoada",
+            "description": "Princípios bíblicos para a vida familiar",
+            "difficulty": "intermediate",
+            "category": "family",
+            "estimated_weeks": 6,
+            "steps": [
+                {"id": str(uuid.uuid4()), "title": "O Plano de Deus para a Família", "description": "Fundamentos bíblicos", "order": 1, "content_type": "text", "duration_minutes": 45},
+                {"id": str(uuid.uuid4()), "title": "Casamento Saudável", "description": "Comunicação e amor", "order": 2, "content_type": "text", "duration_minutes": 45},
+                {"id": str(uuid.uuid4()), "title": "Educação de Filhos", "description": "Criando na disciplina do Senhor", "order": 3, "content_type": "text", "duration_minutes": 45},
+                {"id": str(uuid.uuid4()), "title": "Finanças Familiares", "description": "Mordomia cristã", "order": 4, "content_type": "text", "duration_minutes": 45},
+            ]
+        }
+    ]
+    
+    # Create trails for a default tenant (or without tenant for public)
+    created = 0
+    for trail_data in default_trails:
+        existing = await db.discipleship_trails.find_one({"name": trail_data["name"], "tenant_id": {"$exists": False}}, {"_id": 0})
+        if not existing:
+            trail_data["id"] = str(uuid.uuid4())
+            trail_data["tenant_id"] = ""  # Public trails
+            trail_data["is_active"] = True
+            trail_data["created_at"] = datetime.now(timezone.utc).isoformat()
+            await db.discipleship_trails.insert_one(trail_data)
+            created += 1
+    
+    return {"message": f"{created} trilhas de discipulado criadas com sucesso"}
+
 # ==================== COMMUNICATION ====================
 @api_router.post("/church/communication/send")
 async def send_communication(
