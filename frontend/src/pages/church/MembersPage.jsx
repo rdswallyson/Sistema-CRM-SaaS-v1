@@ -382,16 +382,9 @@ export default function MembersPage() {
                                         data-testid="member-baptism-input"
                                     />
                                 </div>
-                                    <Label htmlFor="conversion_date">Data de Conversão</Label>
-                                    <Input
-                                        id="conversion_date"
-                                        type="date"
-                                        value={formData.conversion_date}
-                                        onChange={(e) => setFormData({ ...formData, conversion_date: e.target.value })}
-                                        data-testid="member-conversion-input"
-                                    />
-                                </div>
-                                <div className="col-span-2 space-y-2">
+
+                                {/* Observações */}
+                                <div className="col-span-2 pt-4 border-t space-y-2">
                                     <Label htmlFor="notes">Observações</Label>
                                     <textarea
                                         id="notes"
