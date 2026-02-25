@@ -53,13 +53,14 @@ module.exports = {
                     '4': 'hsl(var(--chart-4))',
                     '5': 'hsl(var(--chart-5))'
                 },
-                // Custom brand colors
+                // Custom brand colors - Sky Blue Theme
                 brand: {
-                    green: {
-                        DEFAULT: '#4ade80',
-                        hover: '#22c55e',
-                        active: '#15803d',
-                        subtle: '#dcfce7',
+                    sky: {
+                        DEFAULT: '#0ea5e9',
+                        hover: '#0284c7',
+                        active: '#0369a1',
+                        subtle: '#e0f2fe',
+                        light: '#7dd3fc',
                     },
                     blue: {
                         DEFAULT: '#3b82f6',
