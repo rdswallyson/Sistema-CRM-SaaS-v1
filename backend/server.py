@@ -791,7 +791,8 @@ async def create_trail(trail_data: DiscipleshipTrailCreate, current_user: dict =
 @api_router.get("/church/discipleship/trails")
 async def list_trails(current_user: dict = Depends(require_church_admin)):
     tenant_id = current_user.get('tenant_id')
-    query = {"tenant_id": tenant_id} if tenant_id else {}
+    # Get both tenant-specific trails and public trails (tenant_id = "")
+    query = {"$or": [{"tenant_id": tenant_id}, {"tenant_id": ""}]} if tenant_id else {}
     trails = await db.discipleship_trails.find(query, {"_id": 0}).to_list(100)
     return trails
 
