@@ -124,11 +124,17 @@ class MemberBase(BaseModel):
     phone: Optional[str] = None
     address: Optional[str] = None
     birth_date: Optional[str] = None
+    gender: Optional[str] = None
+    marital_status: Optional[str] = None
+    profession: Optional[str] = None
+    photo_url: Optional[str] = None
     status: MemberStatus = MemberStatus.VISITOR
     baptism_date: Optional[str] = None
     conversion_date: Optional[str] = None
     family_id: Optional[str] = None
+    family_role: Optional[str] = None  # head, spouse, child
     ministry_ids: List[str] = []
+    spiritual_gifts: List[str] = []
     notes: Optional[str] = None
     custom_fields: Dict[str, Any] = {}
 
