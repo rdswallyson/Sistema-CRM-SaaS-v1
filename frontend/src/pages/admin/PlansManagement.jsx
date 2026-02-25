@@ -214,7 +214,7 @@ export default function PlansManagement() {
             {/* Plans Grid */}
             {loading ? (
                 <div className="flex items-center justify-center py-8">
-                    <Loader2 className="w-8 h-8 animate-spin text-brand-green" />
+                    <Loader2 className="w-8 h-8 animate-spin text-brand-sky" />
                 </div>
             ) : (
                 <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6" data-testid="plans-grid">
@@ -225,7 +225,7 @@ export default function PlansManagement() {
                                     <Badge
                                         className={
                                             plan.is_active
-                                                ? 'bg-brand-green/10 text-brand-green-active'
+                                                ? 'bg-brand-sky/10 text-brand-sky-active'
                                                 : 'bg-slate-100 text-slate-500'
                                         }
                                     >
@@ -251,7 +251,7 @@ export default function PlansManagement() {
                                 <ul className="space-y-2">
                                     {plan.features?.slice(0, 5).map((feature, i) => (
                                         <li key={i} className="flex items-start gap-2 text-sm">
-                                            <Check className="w-4 h-4 text-brand-green shrink-0 mt-0.5" />
+                                            <Check className="w-4 h-4 text-brand-sky shrink-0 mt-0.5" />
                                             <span className="text-slate-600">{feature}</span>
                                         </li>
                                     ))}

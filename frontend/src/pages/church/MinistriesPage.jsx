@@ -201,7 +201,7 @@ export default function MinistriesPage() {
             {/* Ministries Grid */}
             {loading ? (
                 <div className="flex items-center justify-center py-8">
-                    <Loader2 className="w-8 h-8 animate-spin text-brand-green" />
+                    <Loader2 className="w-8 h-8 animate-spin text-brand-sky" />
                 </div>
             ) : (
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6" data-testid="ministries-grid">
@@ -209,7 +209,7 @@ export default function MinistriesPage() {
                         <Card key={ministry.id} className="dashboard-card card-hover" data-testid={`ministry-${ministry.id}`}>
                             <CardHeader className="pb-4">
                                 <div className="flex items-start justify-between">
-                                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-brand-green/10 to-brand-blue/10 flex items-center justify-center">
+                                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-brand-sky/10 to-brand-blue/10 flex items-center justify-center">
                                         <Church className="w-6 h-6 text-brand-blue" />
                                     </div>
                                     <DropdownMenu>

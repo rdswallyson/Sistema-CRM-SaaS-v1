@@ -91,7 +91,7 @@ export default function ChurchDashboard() {
     if (loading) {
         return (
             <div className="flex items-center justify-center h-64">
-                <div className="animate-spin rounded-full h-12 w-12 border-4 border-brand-green border-t-transparent"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-4 border-brand-sky border-t-transparent"></div>
             </div>
         );
     }
@@ -114,15 +114,15 @@ export default function ChurchDashboard() {
                                     {dashboard?.total_members || 0}
                                 </p>
                                 <div className="flex items-center gap-1 mt-2 text-sm">
-                                    <TrendingUp className="w-4 h-4 text-brand-green" />
-                                    <span className="text-brand-green font-medium">
+                                    <TrendingUp className="w-4 h-4 text-brand-sky" />
+                                    <span className="text-brand-sky font-medium">
                                         +{dashboard?.growth_percentage || 0}%
                                     </span>
                                     <span className="text-slate-500">este mês</span>
                                 </div>
                             </div>
-                            <div className="w-12 h-12 rounded-xl bg-brand-green/10 flex items-center justify-center">
-                                <Users className="w-6 h-6 text-brand-green" />
+                            <div className="w-12 h-12 rounded-xl bg-brand-sky/10 flex items-center justify-center">
+                                <Users className="w-6 h-6 text-brand-sky" />
                             </div>
                         </div>
                     </CardContent>
@@ -173,8 +173,8 @@ export default function ChurchDashboard() {
                                     {formatCurrency(dashboard?.monthly_revenue || 0)}
                                 </p>
                                 <div className="flex items-center gap-1 mt-2 text-sm">
-                                    <TrendingUp className="w-4 h-4 text-brand-green" />
-                                    <span className="text-brand-green font-medium">+8%</span>
+                                    <TrendingUp className="w-4 h-4 text-brand-sky" />
+                                    <span className="text-brand-sky font-medium">+8%</span>
                                     <span className="text-slate-500">vs mês anterior</span>
                                 </div>
                             </div>

@@ -112,7 +112,7 @@ export default function CommunicationPage() {
     if (loading) {
         return (
             <div className="flex items-center justify-center h-64">
-                <Loader2 className="w-8 h-8 animate-spin text-brand-green" />
+                <Loader2 className="w-8 h-8 animate-spin text-brand-sky" />
             </div>
         );
     }
@@ -288,7 +288,7 @@ export default function CommunicationPage() {
                                     key={member.id}
                                     className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-colors ${
                                         selectedMembers.includes(member.id)
-                                            ? 'bg-brand-green/10'
+                                            ? 'bg-brand-sky/10'
                                             : 'hover:bg-slate-50'
                                     }`}
                                     onClick={() => toggleMember(member.id)}

@@ -93,7 +93,7 @@ export default function DashboardLayout({ variant = 'church' }) {
                 {/* Logo */}
                 <div className="h-16 flex items-center justify-between px-4 border-b border-slate-100">
                     <Link to="/" className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-green to-brand-blue flex items-center justify-center">
+                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-sky to-brand-blue flex items-center justify-center">
                             <Church className="w-5 h-5 text-white" />
                         </div>
                         <span className="font-heading font-bold text-slate-900">Firmes</span>
@@ -119,7 +119,7 @@ export default function DashboardLayout({ variant = 'church' }) {
                                 className={cn(
                                     "flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium transition-colors",
                                     active
-                                        ? "bg-brand-green/10 text-brand-green-active"
+                                        ? "bg-brand-sky/10 text-brand-sky-active"
                                         : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                                 )}
                                 onClick={() => setSidebarOpen(false)}
@@ -176,7 +176,7 @@ export default function DashboardLayout({ variant = 'church' }) {
                         <DropdownMenuTrigger asChild>
                             <Button variant="ghost" className="flex items-center gap-2" data-testid="user-menu-btn">
                                 <Avatar className="h-8 w-8">
-                                    <AvatarFallback className="bg-brand-green/10 text-brand-green-active text-sm font-medium">
+                                    <AvatarFallback className="bg-brand-sky/10 text-brand-sky-active text-sm font-medium">
                                         {getInitials(user?.name)}
                                     </AvatarFallback>
                                 </Avatar>

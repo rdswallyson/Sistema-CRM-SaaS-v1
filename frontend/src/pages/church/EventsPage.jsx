@@ -254,7 +254,7 @@ export default function EventsPage() {
             {/* Events Grid */}
             {loading ? (
                 <div className="flex items-center justify-center py-8">
-                    <Loader2 className="w-8 h-8 animate-spin text-brand-green" />
+                    <Loader2 className="w-8 h-8 animate-spin text-brand-sky" />
                 </div>
             ) : (
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6" data-testid="events-grid">
@@ -270,7 +270,7 @@ export default function EventsPage() {
                                         className={
                                             isPastEvent(event.event_date)
                                                 ? 'bg-slate-100 text-slate-500'
-                                                : 'bg-brand-green/10 text-brand-green-active'
+                                                : 'bg-brand-sky/10 text-brand-sky-active'
                                         }
                                     >
                                         {isPastEvent(event.event_date) ? 'Encerrado' : 'Próximo'}

@@ -122,7 +122,7 @@ export default function LandingPage() {
                 <div className="max-w-7xl mx-auto px-4 md:px-8">
                     <div className="flex items-center justify-between h-16">
                         <Link to="/" className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-green to-brand-blue flex items-center justify-center">
+                            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-sky to-brand-blue flex items-center justify-center">
                                 <Church className="w-5 h-5 text-white" />
                             </div>
                             <span className="font-heading font-bold text-slate-900">Firmes</span>
@@ -178,7 +178,7 @@ export default function LandingPage() {
                 <div className="max-w-7xl mx-auto px-4 md:px-8">
                     <div className="grid lg:grid-cols-2 gap-12 items-center">
                         <div className="animate-slide-up">
-                            <Badge className="mb-4 bg-brand-green/10 text-brand-green-active hover:bg-brand-green/20">
+                            <Badge className="mb-4 bg-brand-sky/10 text-brand-sky-active hover:bg-brand-sky/20">
                                 30 dias grátis
                             </Badge>
                             <h1 className="font-heading text-4xl sm:text-5xl lg:text-6xl font-bold text-slate-900 leading-tight mb-6">
@@ -203,7 +203,7 @@ export default function LandingPage() {
                             </div>
                             <div className="mt-8 flex items-center gap-6 text-sm text-slate-500">
                                 <div className="flex items-center gap-2">
-                                    <Shield className="w-4 h-4 text-brand-green" />
+                                    <Shield className="w-4 h-4 text-brand-sky" />
                                     <span>LGPD Compliant</span>
                                 </div>
                                 <div className="flex items-center gap-2">
@@ -221,7 +221,7 @@ export default function LandingPage() {
                                     className="w-full h-auto object-cover"
                                 />
                             </div>
-                            <div className="absolute -bottom-6 -left-6 w-48 h-48 bg-brand-green/20 rounded-full blur-3xl"></div>
+                            <div className="absolute -bottom-6 -left-6 w-48 h-48 bg-brand-sky/20 rounded-full blur-3xl"></div>
                             <div className="absolute -top-6 -right-6 w-48 h-48 bg-brand-blue/20 rounded-full blur-3xl"></div>
                         </div>
                     </div>
@@ -251,7 +251,7 @@ export default function LandingPage() {
                                     data-testid={`feature-card-${index}`}
                                 >
                                     <CardContent className="p-0">
-                                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-brand-green/10 to-brand-blue/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-brand-sky/10 to-brand-blue/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                                             <Icon className="w-6 h-6 text-brand-blue" />
                                         </div>
                                         <h3 className="font-heading text-lg font-semibold text-slate-900 mb-2">
@@ -270,7 +270,7 @@ export default function LandingPage() {
             <section id="pricing" className="py-24 md:py-32">
                 <div className="max-w-7xl mx-auto px-4 md:px-8">
                     <div className="text-center mb-16">
-                        <Badge className="mb-4 bg-brand-green/10 text-brand-green-active">Planos</Badge>
+                        <Badge className="mb-4 bg-brand-sky/10 text-brand-sky-active">Planos</Badge>
                         <h2 className="font-heading text-3xl md:text-4xl font-bold text-slate-900 mb-4">
                             Escolha o plano ideal
                         </h2>
@@ -307,7 +307,7 @@ export default function LandingPage() {
                                     <ul className="space-y-3 mb-6">
                                         {plan.features?.map((feature, i) => (
                                             <li key={i} className="flex items-start gap-2">
-                                                <Check className="w-5 h-5 text-brand-green shrink-0 mt-0.5" />
+                                                <Check className="w-5 h-5 text-brand-sky shrink-0 mt-0.5" />
                                                 <span className="text-slate-600">{feature}</span>
                                             </li>
                                         ))}
@@ -337,7 +337,7 @@ export default function LandingPage() {
             <section id="testimonials" className="py-24 md:py-32 bg-slate-50">
                 <div className="max-w-7xl mx-auto px-4 md:px-8">
                     <div className="text-center mb-16">
-                        <Badge className="mb-4 bg-brand-green/10 text-brand-green-active">Depoimentos</Badge>
+                        <Badge className="mb-4 bg-brand-sky/10 text-brand-sky-active">Depoimentos</Badge>
                         <h2 className="font-heading text-3xl md:text-4xl font-bold text-slate-900 mb-4">
                             O que nossos clientes dizem
                         </h2>
@@ -397,7 +397,7 @@ export default function LandingPage() {
                         Junte-se a centenas de igrejas que já usam o Firmes. Comece seu teste gratuito de 30 dias hoje.
                     </p>
                     <Link to="/register">
-                        <Button size="lg" className="bg-brand-green hover:bg-brand-green-hover text-white h-12 px-8" data-testid="cta-final-btn">
+                        <Button size="lg" className="bg-brand-sky hover:bg-brand-sky-hover text-white h-12 px-8" data-testid="cta-final-btn">
                             Começar Teste Gratuito
                             <ArrowRight className="w-5 h-5 ml-2" />
                         </Button>
@@ -411,7 +411,7 @@ export default function LandingPage() {
                 <div className="max-w-7xl mx-auto px-4 md:px-8">
                     <div className="flex flex-col md:flex-row items-center justify-between gap-4">
                         <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-green to-brand-blue flex items-center justify-center">
+                            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-sky to-brand-blue flex items-center justify-center">
                                 <Church className="w-5 h-5 text-white" />
                             </div>
                             <span className="font-heading font-bold text-white">Firmes</span>

@@ -336,7 +336,7 @@ export default function MembersPage() {
                 <CardContent>
                     {loading ? (
                         <div className="flex items-center justify-center py-8">
-                            <Loader2 className="w-8 h-8 animate-spin text-brand-green" />
+                            <Loader2 className="w-8 h-8 animate-spin text-brand-sky" />
                         </div>
                     ) : filteredMembers.length > 0 ? (
                         <div className="overflow-x-auto">

@@ -147,7 +147,7 @@ export default function MemberProfilePage() {
     if (loading) {
         return (
             <div className="flex items-center justify-center h-64">
-                <Loader2 className="w-8 h-8 animate-spin text-brand-green" />
+                <Loader2 className="w-8 h-8 animate-spin text-brand-sky" />
             </div>
         );
     }
@@ -175,7 +175,7 @@ export default function MemberProfilePage() {
 
             {/* Profile Header Card */}
             <Card className="dashboard-card overflow-hidden" data-testid="member-profile-header">
-                <div className="h-24 bg-gradient-to-r from-brand-green to-brand-blue"></div>
+                <div className="h-24 bg-gradient-to-r from-brand-sky to-brand-blue"></div>
                 <CardContent className="relative pt-0">
                     <div className="flex flex-col sm:flex-row items-start sm:items-end gap-4 -mt-12">
                         <div className="w-24 h-24 rounded-xl bg-white shadow-lg flex items-center justify-center border-4 border-white">
@@ -234,8 +234,8 @@ export default function MemberProfilePage() {
                 <Card className="dashboard-card" data-testid="stat-donations">
                     <CardContent className="pt-6">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-brand-green/10 flex items-center justify-center">
-                                <DollarSign className="w-5 h-5 text-brand-green" />
+                            <div className="w-10 h-10 rounded-xl bg-brand-sky/10 flex items-center justify-center">
+                                <DollarSign className="w-5 h-5 text-brand-sky" />
                             </div>
                             <div>
                                 <p className="text-2xl font-bold text-slate-900">{formatCurrency(totalDonations)}</p>
@@ -512,8 +512,8 @@ export default function MemberProfilePage() {
                                             className="flex items-center justify-between p-3 rounded-lg bg-slate-50"
                                         >
                                             <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-lg bg-brand-green/10 flex items-center justify-center">
-                                                    <Gift className="w-5 h-5 text-brand-green" />
+                                                <div className="w-10 h-10 rounded-lg bg-brand-sky/10 flex items-center justify-center">
+                                                    <Gift className="w-5 h-5 text-brand-sky" />
                                                 </div>
                                                 <div>
                                                     <Badge className={donationTypeColors[donation.donation_type]}>
@@ -558,13 +558,13 @@ export default function MemberProfilePage() {
                                         return (
                                             <div
                                                 key={item.id}
-                                                className={`p-4 rounded-xl ${isCompleted ? 'bg-brand-green/5 border border-brand-green/20' : 'bg-slate-50'}`}
+                                                className={`p-4 rounded-xl ${isCompleted ? 'bg-brand-sky/5 border border-brand-sky/20' : 'bg-slate-50'}`}
                                             >
                                                 <div className="flex items-center justify-between mb-3">
                                                     <div className="flex items-center gap-3">
-                                                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${isCompleted ? 'bg-brand-green/20' : 'bg-brand-blue/10'}`}>
+                                                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${isCompleted ? 'bg-brand-sky/20' : 'bg-brand-blue/10'}`}>
                                                             {isCompleted ? (
-                                                                <Award className="w-5 h-5 text-brand-green" />
+                                                                <Award className="w-5 h-5 text-brand-sky" />
                                                             ) : (
                                                                 <BookOpen className="w-5 h-5 text-brand-blue" />
                                                             )}
@@ -579,7 +579,7 @@ export default function MemberProfilePage() {
                                                         </div>
                                                     </div>
                                                     {isCompleted && (
-                                                        <Badge className="bg-brand-green/10 text-brand-green-active">
+                                                        <Badge className="bg-brand-sky/10 text-brand-sky-active">
                                                             <Award className="w-3 h-3 mr-1" />
                                                             Certificado
                                                         </Badge>
@@ -672,9 +672,9 @@ export default function MemberProfilePage() {
                                         {progress.filter(p => p.status === 'completed').map((item) => (
                                             <div
                                                 key={item.id}
-                                                className="flex items-center gap-3 p-3 rounded-lg bg-brand-green/5 border border-brand-green/20"
+                                                className="flex items-center gap-3 p-3 rounded-lg bg-brand-sky/5 border border-brand-sky/20"
                                             >
-                                                <Award className="w-8 h-8 text-brand-green" />
+                                                <Award className="w-8 h-8 text-brand-sky" />
                                                 <div>
                                                     <p className="font-medium text-slate-900">
                                                         {getTrailName(item.trail_id)}

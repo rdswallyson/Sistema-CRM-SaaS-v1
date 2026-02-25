@@ -135,7 +135,7 @@ export default function FinancialPage() {
     if (loading) {
         return (
             <div className="flex items-center justify-center h-64">
-                <Loader2 className="w-8 h-8 animate-spin text-brand-green" />
+                <Loader2 className="w-8 h-8 animate-spin text-brand-sky" />
             </div>
         );
     }
@@ -259,8 +259,8 @@ export default function FinancialPage() {
                                     {formatCurrency(summary?.total_tithes || 0)}
                                 </p>
                             </div>
-                            <div className="w-10 h-10 rounded-xl bg-brand-green/10 flex items-center justify-center">
-                                <DollarSign className="w-5 h-5 text-brand-green" />
+                            <div className="w-10 h-10 rounded-xl bg-brand-sky/10 flex items-center justify-center">
+                                <DollarSign className="w-5 h-5 text-brand-sky" />
                             </div>
                         </div>
                     </CardContent>

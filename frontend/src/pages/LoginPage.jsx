@@ -43,7 +43,7 @@ export default function LoginPage() {
             <div className="w-full max-w-md animate-scale-in">
                 <div className="text-center mb-8">
                     <Link to="/" className="inline-flex items-center gap-2 mb-4">
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-green to-brand-blue flex items-center justify-center">
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-sky to-brand-blue flex items-center justify-center">
                             <Church className="w-6 h-6 text-white" />
                         </div>
                         <span className="font-heading text-2xl font-bold text-slate-900">Firmes</span>

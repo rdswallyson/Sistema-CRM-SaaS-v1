@@ -184,7 +184,7 @@ export default function PromotionsManagement() {
             {/* Promotions Grid */}
             {loading ? (
                 <div className="flex items-center justify-center py-8">
-                    <Loader2 className="w-8 h-8 animate-spin text-brand-green" />
+                    <Loader2 className="w-8 h-8 animate-spin text-brand-sky" />
                 </div>
             ) : (
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6" data-testid="promotions-grid">
@@ -201,7 +201,7 @@ export default function PromotionsManagement() {
                                     <Badge
                                         className={
                                             promo.is_active && !isExpired(promo.valid_until)
-                                                ? 'bg-brand-green/10 text-brand-green-active'
+                                                ? 'bg-brand-sky/10 text-brand-sky-active'
                                                 : 'bg-slate-100 text-slate-500'
                                         }
                                     >

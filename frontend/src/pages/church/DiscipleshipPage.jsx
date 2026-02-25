@@ -245,7 +245,7 @@ export default function DiscipleshipPage() {
     if (loading) {
         return (
             <div className="flex items-center justify-center h-64">
-                <Loader2 className="w-8 h-8 animate-spin text-brand-green" />
+                <Loader2 className="w-8 h-8 animate-spin text-brand-sky" />
             </div>
         );
     }
@@ -463,8 +463,8 @@ export default function DiscipleshipPage() {
                 <Card className="dashboard-card" data-testid="stat-completed">
                     <CardContent className="pt-6">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-brand-green/10 flex items-center justify-center">
-                                <Award className="w-5 h-5 text-brand-green" />
+                            <div className="w-10 h-10 rounded-xl bg-brand-sky/10 flex items-center justify-center">
+                                <Award className="w-5 h-5 text-brand-sky" />
                             </div>
                             <div>
                                 <p className="text-2xl font-bold text-slate-900">{stats?.completed || 0}</p>

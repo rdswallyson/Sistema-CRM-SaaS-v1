@@ -76,7 +76,7 @@ export default function SuperAdminDashboard() {
     if (loading) {
         return (
             <div className="flex items-center justify-center h-64">
-                <div className="animate-spin rounded-full h-12 w-12 border-4 border-brand-green border-t-transparent"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-4 border-brand-sky border-t-transparent"></div>
             </div>
         );
     }
@@ -99,13 +99,13 @@ export default function SuperAdminDashboard() {
                                     {metrics?.total_churches || 0}
                                 </p>
                                 <div className="flex items-center gap-1 mt-2 text-sm">
-                                    <TrendingUp className="w-4 h-4 text-brand-green" />
-                                    <span className="text-brand-green font-medium">+{metrics?.new_churches_30d || 0}</span>
+                                    <TrendingUp className="w-4 h-4 text-brand-sky" />
+                                    <span className="text-brand-sky font-medium">+{metrics?.new_churches_30d || 0}</span>
                                     <span className="text-slate-500">nos últimos 30 dias</span>
                                 </div>
                             </div>
-                            <div className="w-12 h-12 rounded-xl bg-brand-green/10 flex items-center justify-center">
-                                <Building2 className="w-6 h-6 text-brand-green" />
+                            <div className="w-12 h-12 rounded-xl bg-brand-sky/10 flex items-center justify-center">
+                                <Building2 className="w-6 h-6 text-brand-sky" />
                             </div>
                         </div>
                     </CardContent>
@@ -141,8 +141,8 @@ export default function SuperAdminDashboard() {
                                     {formatCurrency(metrics?.mrr || 0)}
                                 </p>
                                 <div className="flex items-center gap-1 mt-2 text-sm">
-                                    <TrendingUp className="w-4 h-4 text-brand-green" />
-                                    <span className="text-brand-green font-medium">+8.5%</span>
+                                    <TrendingUp className="w-4 h-4 text-brand-sky" />
+                                    <span className="text-brand-sky font-medium">+8.5%</span>
                                     <span className="text-slate-500">vs mês anterior</span>
                                 </div>
                             </div>
@@ -162,8 +162,8 @@ export default function SuperAdminDashboard() {
                                     {metrics?.churn_rate || 0}%
                                 </p>
                                 <div className="flex items-center gap-1 mt-2 text-sm">
-                                    <TrendingDown className="w-4 h-4 text-brand-green" />
-                                    <span className="text-brand-green font-medium">-0.5%</span>
+                                    <TrendingDown className="w-4 h-4 text-brand-sky" />
+                                    <span className="text-brand-sky font-medium">-0.5%</span>
                                     <span className="text-slate-500">vs mês anterior</span>
                                 </div>
                             </div>
@@ -284,7 +284,7 @@ export default function SuperAdminDashboard() {
                                                 </Badge>
                                             </td>
                                             <td className="py-3 px-4">
-                                                <Badge className={tenant.is_active ? 'bg-brand-green/10 text-brand-green-active' : 'bg-slate-100 text-slate-500'}>
+                                                <Badge className={tenant.is_active ? 'bg-brand-sky/10 text-brand-sky-active' : 'bg-slate-100 text-slate-500'}>
                                                     {tenant.is_active ? 'Ativa' : 'Inativa'}
                                                 </Badge>
                                             </td>

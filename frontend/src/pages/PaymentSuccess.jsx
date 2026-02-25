@@ -49,7 +49,7 @@ export default function PaymentSuccess() {
             <Card className="w-full max-w-md shadow-floating animate-scale-in" data-testid="payment-result-card">
                 <CardContent className="pt-8 pb-8 text-center">
                     <Link to="/" className="inline-flex items-center gap-2 mb-8">
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-green to-brand-blue flex items-center justify-center">
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-sky to-brand-blue flex items-center justify-center">
                             <Church className="w-6 h-6 text-white" />
                         </div>
                         <span className="font-heading text-xl font-bold text-slate-900">Firmes</span>
@@ -69,8 +69,8 @@ export default function PaymentSuccess() {
 
                     {status === 'success' && (
                         <div className="space-y-4">
-                            <div className="w-20 h-20 mx-auto rounded-full bg-brand-green/10 flex items-center justify-center">
-                                <CheckCircle className="w-12 h-12 text-brand-green" />
+                            <div className="w-20 h-20 mx-auto rounded-full bg-brand-sky/10 flex items-center justify-center">
+                                <CheckCircle className="w-12 h-12 text-brand-sky" />
                             </div>
                             <h2 className="font-heading text-2xl font-semibold text-slate-900">
                                 Pagamento Confirmado!
