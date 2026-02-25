@@ -89,6 +89,7 @@ const AppRoutes = () => {
                 <Route path="ministries" element={<MinistriesPage />} />
                 <Route path="events" element={<EventsPage />} />
                 <Route path="financial" element={<FinancialPage />} />
+                <Route path="discipleship" element={<DiscipleshipPage />} />
                 <Route path="communication" element={<CommunicationPage />} />
                 <Route path="settings" element={<SettingsPage />} />
             </Route>
