@@ -384,26 +384,40 @@ export default function MembersPage() {
                                                 </Badge>
                                             </td>
                                             <td className="py-3 px-4 text-right">
-                                                <DropdownMenu>
-                                                    <DropdownMenuTrigger asChild>
-                                                        <Button variant="ghost" size="sm" data-testid={`member-menu-${member.id}`}>
-                                                            <MoreVertical className="w-4 h-4" />
-                                                        </Button>
-                                                    </DropdownMenuTrigger>
-                                                    <DropdownMenuContent align="end">
-                                                        <DropdownMenuItem onClick={() => handleEdit(member)}>
-                                                            <Edit className="w-4 h-4 mr-2" />
-                                                            Editar
-                                                        </DropdownMenuItem>
-                                                        <DropdownMenuItem
-                                                            onClick={() => handleDelete(member)}
-                                                            className="text-red-600"
-                                                        >
-                                                            <Trash2 className="w-4 h-4 mr-2" />
-                                                            Excluir
-                                                        </DropdownMenuItem>
-                                                    </DropdownMenuContent>
-                                                </DropdownMenu>
+                                                <div className="flex items-center justify-end gap-1">
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() => navigate(`/dashboard/members/${member.id}`)}
+                                                        data-testid={`view-member-${member.id}`}
+                                                    >
+                                                        <Eye className="w-4 h-4" />
+                                                    </Button>
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger asChild>
+                                                            <Button variant="ghost" size="sm" data-testid={`member-menu-${member.id}`}>
+                                                                <MoreVertical className="w-4 h-4" />
+                                                            </Button>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent align="end">
+                                                            <DropdownMenuItem onClick={() => navigate(`/dashboard/members/${member.id}`)}>
+                                                                <Eye className="w-4 h-4 mr-2" />
+                                                                Ver Perfil
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuItem onClick={() => handleEdit(member)}>
+                                                                <Edit className="w-4 h-4 mr-2" />
+                                                                Editar
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuItem
+                                                                onClick={() => handleDelete(member)}
+                                                                className="text-red-600"
+                                                            >
+                                                                <Trash2 className="w-4 h-4 mr-2" />
+                                                                Excluir
+                                                            </DropdownMenuItem>
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
+                                                </div>
                                             </td>
                                         </tr>
                                     ))}
