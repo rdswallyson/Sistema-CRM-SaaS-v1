@@ -494,30 +494,33 @@ class ChurchSaaSTester:
             # Super Admin functions
             self.test_super_admin_metrics()
             self.test_list_tenants()
-            self.test_create_tenant()
             
             # Public endpoints
             self.test_get_public_plans()
             
-            # Church management
-            self.test_church_dashboard()
-            
-            # Members
-            if self.test_create_member():
-                self.test_list_members()
-            
-            # Ministries
-            if self.test_create_ministry():
-                self.test_list_ministries()
-            
-            # Events
-            if self.test_create_event():
-                self.test_list_events()
-            
-            # Financial
-            if self.test_create_donation():
-                self.test_list_donations()
-                self.test_financial_summary()
+            # Create a test church and admin
+            if self.test_create_tenant():
+                # Login with church admin
+                if self.test_login_church_admin():
+                    # Church management
+                    self.test_church_dashboard()
+                    
+                    # Members
+                    if self.test_create_member():
+                        self.test_list_members()
+                    
+                    # Ministries
+                    if self.test_create_ministry():
+                        self.test_list_ministries()
+                    
+                    # Events
+                    if self.test_create_event():
+                        self.test_list_events()
+                    
+                    # Financial
+                    if self.test_create_donation():
+                        self.test_list_donations()
+                        self.test_financial_summary()
 
         print("\n" + "=" * 60)
         print(f"📊 Test Results: {self.tests_passed}/{self.tests_run} tests passed")
