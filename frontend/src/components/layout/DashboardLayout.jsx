@@ -96,7 +96,7 @@ export default function DashboardLayout({ variant = 'church' }) {
                         <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-green to-brand-blue flex items-center justify-center">
                             <Church className="w-5 h-5 text-white" />
                         </div>
-                        <span className="font-heading font-bold text-slate-900">Firmes na Fé</span>
+                        <span className="font-heading font-bold text-slate-900">Firmes</span>
                     </Link>
                     <button
                         onClick={() => setSidebarOpen(false)}

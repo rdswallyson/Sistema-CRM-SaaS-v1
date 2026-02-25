@@ -52,7 +52,7 @@ export default function PaymentSuccess() {
                         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-green to-brand-blue flex items-center justify-center">
                             <Church className="w-6 h-6 text-white" />
                         </div>
-                        <span className="font-heading text-xl font-bold text-slate-900">Firmes na Fé</span>
+                        <span className="font-heading text-xl font-bold text-slate-900">Firmes</span>
                     </Link>
 
                     {status === 'loading' && (
@@ -76,7 +76,7 @@ export default function PaymentSuccess() {
                                 Pagamento Confirmado!
                             </h2>
                             <p className="text-slate-500">
-                                Obrigado por assinar o Firmes na Fé. Sua conta já está ativa.
+                                Obrigado por assinar o Firmes. Sua conta já está ativa.
                             </p>
                             <Link to="/dashboard">
                                 <Button className="mt-4 bg-slate-900 hover:bg-slate-800" data-testid="go-to-dashboard-btn">

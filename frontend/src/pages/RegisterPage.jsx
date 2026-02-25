@@ -64,7 +64,7 @@ export default function RegisterPage() {
                         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-green to-brand-blue flex items-center justify-center">
                             <Church className="w-6 h-6 text-white" />
                         </div>
-                        <span className="font-heading text-2xl font-bold text-slate-900">Firmes na Fé</span>
+                        <span className="font-heading text-2xl font-bold text-slate-900">Firmes</span>
                     </Link>
                 </div>
 
