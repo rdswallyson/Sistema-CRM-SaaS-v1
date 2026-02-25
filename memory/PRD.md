@@ -1,7 +1,7 @@
-# Firmes na Fé - Church Management SaaS
+# Firmes - Church Management SaaS
 
 ## Problem Statement
-Sistema completo SaaS Multi-Tenant para gestão de igrejas chamado "Firmes – Na Fé". Sistema preparado para milhares de instituições com ambiente isolado por tenant_id.
+Sistema completo SaaS Multi-Tenant para gestão de igrejas chamado "Firmes". Sistema preparado para milhares de instituições com ambiente isolado por tenant_id.
 
 ## Architecture
 - **Backend**: FastAPI + MongoDB (motor async) + JWT Authentication
@@ -26,9 +26,10 @@ Sistema completo SaaS Multi-Tenant para gestão de igrejas chamado "Firmes – N
 - Event management with check-in
 - Financial module (tithes, offerings, donations)
 - Communication module (email, SMS, WhatsApp)
+- Discipleship module with spiritual growth trails
 - LGPD compliance
 
-## What's Been Implemented (Jan 2026)
+## What's Been Implemented (Feb 2026)
 - [x] Landing page institucional completa
 - [x] Sistema de autenticação JWT multi-tenant
 - [x] Super Admin Dashboard com métricas globais
@@ -37,12 +38,23 @@ Sistema completo SaaS Multi-Tenant para gestão de igrejas chamado "Firmes – N
 - [x] Gestão de promoções/cupons
 - [x] Church Admin Dashboard com gráficos
 - [x] Gestão de membros completa
+- [x] **Perfil completo do membro** com conexões a todos os módulos
 - [x] Gestão de ministérios
 - [x] Gestão de eventos
 - [x] Módulo financeiro (dízimos, ofertas, doações)
 - [x] Módulo de comunicação (logs)
+- [x] **Módulo de Discipulado completo**
+  - 5 Trilhas padrão
+  - Sistema de etapas (texto, vídeo, quiz, tarefa)
+  - Inscrição e progresso de membros
+  - Sistema de mentoria
+  - Certificados de conclusão
 - [x] Configurações e personalização
 - [x] Integração Stripe (test mode)
+
+## Demo Credentials
+- **Super Admin**: admin@firmes.com / admin123
+- **Church Admin**: pastor@vidanova.com / pastor123
 
 ## Prioritized Backlog
 ### P0 (Critical)
@@ -55,8 +67,12 @@ Sistema completo SaaS Multi-Tenant para gestão de igrejas chamado "Firmes – N
 - [ ] Email sending (SendGrid)
 - [ ] Doações recorrentes automáticas
 - [ ] Relatórios exportáveis (PDF/Excel)
+- [ ] Notificações automáticas de progresso no discipulado
+- [ ] Certificados digitais de conclusão
 
 ### P2 (Medium)
+- [ ] Gamificação (badges, pontos)
+- [ ] Relatórios de engajamento no discipulado
 - [ ] Automação para visitantes (fluxos)
 - [ ] Análise preditiva de evasão
 - [ ] White label completo
@@ -64,27 +80,7 @@ Sistema completo SaaS Multi-Tenant para gestão de igrejas chamado "Firmes – N
 - [ ] Logs de atividade (auditoria)
 
 ## Next Tasks
-1. Implementar Mercado Pago para pagamentos no Brasil
-2. Integrar Twilio real para SMS/WhatsApp
-3. Criar versão PWA/Mobile do sistema
-4. Implementar QR Code real para check-in
-5. Adicionar relatórios exportáveis
-
-## Demo Credentials
-- Super Admin: admin@firmesnafe.com / admin123
-
-## Update - Feb 2026: Módulo de Discipulado
-
-### Implementado:
-- [x] 5 Trilhas padrão: Primeiros Passos, Batismo, Crescimento Espiritual, Liderança, Família
-- [x] Sistema de etapas com tipos: texto, vídeo, quiz, tarefa
-- [x] Inscrição de membros em trilhas
-- [x] Sistema de mentoria (mentor-discípulo)
-- [x] Progresso por etapas com barra de conclusão
-- [x] Estatísticas: total, em andamento, concluídos, taxa de conclusão
-- [x] Categorias com ícones e cores diferenciados
-- [x] Níveis de dificuldade: Iniciante, Intermediário, Avançado
-
-### Credenciais Demo Igreja:
-- **Email**: pastor@vidanova.com
-- **Senha**: pastor123
+1. Implementar notificações automáticas de progresso
+2. Criar certificados digitais de conclusão de trilhas
+3. Implementar gamificação (badges, pontos)
+4. Relatórios de engajamento no discipulado
