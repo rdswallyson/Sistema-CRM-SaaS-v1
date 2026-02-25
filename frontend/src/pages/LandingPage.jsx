@@ -125,7 +125,7 @@ export default function LandingPage() {
                             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-green to-brand-blue flex items-center justify-center">
                                 <Church className="w-5 h-5 text-white" />
                             </div>
-                            <span className="font-heading font-bold text-slate-900">Firmes na Fé</span>
+                            <span className="font-heading font-bold text-slate-900">Firmes</span>
                         </Link>
 
                         <div className="hidden md:flex items-center gap-8">
@@ -182,7 +182,7 @@ export default function LandingPage() {
                                 30 dias grátis
                             </Badge>
                             <h1 className="font-heading text-4xl sm:text-5xl lg:text-6xl font-bold text-slate-900 leading-tight mb-6">
-                                Firmes – Na Fé.
+                                Firmes.
                                 <span className="block text-brand-blue">A gestão que sua igreja merece.</span>
                             </h1>
                             <p className="text-lg text-slate-600 mb-8 max-w-xl">
@@ -394,7 +394,7 @@ export default function LandingPage() {
                         Pronto para transformar a gestão da sua igreja?
                     </h2>
                     <p className="text-lg text-slate-300 mb-8 max-w-2xl mx-auto">
-                        Junte-se a centenas de igrejas que já usam o Firmes na Fé. Comece seu teste gratuito de 30 dias hoje.
+                        Junte-se a centenas de igrejas que já usam o Firmes. Comece seu teste gratuito de 30 dias hoje.
                     </p>
                     <Link to="/register">
                         <Button size="lg" className="bg-brand-green hover:bg-brand-green-hover text-white h-12 px-8" data-testid="cta-final-btn">
@@ -414,10 +414,10 @@ export default function LandingPage() {
                             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-green to-brand-blue flex items-center justify-center">
                                 <Church className="w-5 h-5 text-white" />
                             </div>
-                            <span className="font-heading font-bold text-white">Firmes na Fé</span>
+                            <span className="font-heading font-bold text-white">Firmes</span>
                         </div>
                         <p className="text-slate-400 text-sm">
-                            © 2024 Firmes na Fé. Todos os direitos reservados.
+                            © 2024 Firmes. Todos os direitos reservados.
                         </p>
                     </div>
                 </div>
