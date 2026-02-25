@@ -12,6 +12,7 @@ import PlansManagement from "./pages/admin/PlansManagement";
 import PromotionsManagement from "./pages/admin/PromotionsManagement";
 import ChurchDashboard from "./pages/church/ChurchDashboard";
 import MembersPage from "./pages/church/MembersPage";
+import MemberProfilePage from "./pages/church/MemberProfilePage";
 import MinistriesPage from "./pages/church/MinistriesPage";
 import EventsPage from "./pages/church/EventsPage";
 import FinancialPage from "./pages/church/FinancialPage";
