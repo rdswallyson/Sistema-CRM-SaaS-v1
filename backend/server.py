@@ -63,6 +63,17 @@ class DonationType(str, Enum):
     SPECIAL = "special"
     RECURRING = "recurring"
 
+class DiscipleshipStatus(str, Enum):
+    NOT_STARTED = "not_started"
+    IN_PROGRESS = "in_progress"
+    COMPLETED = "completed"
+    PAUSED = "paused"
+
+class TrailDifficulty(str, Enum):
+    BEGINNER = "beginner"
+    INTERMEDIATE = "intermediate"
+    ADVANCED = "advanced"
+
 # ==================== MODELS ====================
 class TenantBase(BaseModel):
     name: str
