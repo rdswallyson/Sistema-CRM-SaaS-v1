@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { churchAPI } from '../../lib/api';
 import { memberStatusLabels, memberStatusColors, formatDate } from '../../lib/utils';
 import { Button } from '../../components/ui/button';
@@ -37,10 +38,12 @@ import {
     Mail,
     Loader2,
     UserPlus,
+    Eye,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function MembersPage() {
+    const navigate = useNavigate();
     const [members, setMembers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
