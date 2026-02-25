@@ -199,6 +199,71 @@ class Donation(DonationBase):
     tenant_id: str
     donation_date: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
+# ==================== DISCIPLESHIP MODELS ====================
+class TrailStepBase(BaseModel):
+    title: str
+    description: Optional[str] = None
+    order: int = 0
+    content_type: str = "text"  # text, video, quiz, task
+    content: Optional[str] = None
+    duration_minutes: int = 30
+
+class TrailStep(TrailStepBase):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+
+class DiscipleshipTrailBase(BaseModel):
+    name: str
+    description: Optional[str] = None
+    difficulty: TrailDifficulty = TrailDifficulty.BEGINNER
+    category: str = "general"  # new_convert, baptism, leadership, spiritual_growth, family
+    estimated_weeks: int = 4
+    is_active: bool = True
+    steps: List[TrailStep] = []
+
+class DiscipleshipTrailCreate(BaseModel):
+    name: str
+    description: Optional[str] = None
+    difficulty: TrailDifficulty = TrailDifficulty.BEGINNER
+    category: str = "general"
+    estimated_weeks: int = 4
+
+class DiscipleshipTrail(DiscipleshipTrailBase):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    tenant_id: str
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class MemberTrailProgressBase(BaseModel):
+    member_id: str
+    trail_id: str
+    mentor_id: Optional[str] = None
+    status: DiscipleshipStatus = DiscipleshipStatus.NOT_STARTED
+    current_step: int = 0
+    completed_steps: List[str] = []
+    notes: Optional[str] = None
+
+class MemberTrailProgress(MemberTrailProgressBase):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    tenant_id: str
+    started_at: Optional[datetime] = None
+    completed_at: Optional[datetime] = None
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class MentorshipBase(BaseModel):
+    mentor_id: str
+    disciple_id: str
+    trail_id: Optional[str] = None
+    is_active: bool = True
+    notes: Optional[str] = None
+
+class Mentorship(MentorshipBase):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    tenant_id: str
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
 class PlanBase(BaseModel):
     name: str
     type: PlanType
