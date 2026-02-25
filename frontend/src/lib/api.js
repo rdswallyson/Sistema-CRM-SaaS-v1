@@ -130,6 +130,7 @@ export const publicAPI = {
     getPlans: () => api.get('/plans'),
     seedSuperAdmin: () => api.post('/seed/super-admin'),
     seedPlans: () => api.post('/seed/plans'),
+    seedDiscipleshipTrails: () => api.post('/seed/discipleship-trails'),
 };
 
 // Payments API
