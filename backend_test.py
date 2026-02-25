@@ -171,10 +171,14 @@ class ChurchSaaSTester:
             self.log_test("Create Tenant", False, "No token available")
             return False
             
+        timestamp = datetime.now().strftime('%H%M%S')
+        self.church_admin_email = f"admin.teste.{timestamp}@teste.com"
+        self.church_admin_password = "senha123"
+        
         tenant_data = {
-            "name": f"Igreja Teste {datetime.now().strftime('%H%M%S')}",
-            "admin_email": f"admin.teste.{datetime.now().strftime('%H%M%S')}@teste.com",
-            "admin_password": "senha123",
+            "name": f"Igreja Teste {timestamp}",
+            "admin_email": self.church_admin_email,
+            "admin_password": self.church_admin_password,
             "admin_name": "Admin Teste",
             "plan_type": "essential",
             "member_limit": 100
@@ -192,6 +196,29 @@ class ChurchSaaSTester:
             self.test_tenant_id = response.get('id')
         
         return success
+
+    def test_login_church_admin(self):
+        """Test login with church admin credentials"""
+        if not hasattr(self, 'church_admin_email'):
+            self.log_test("Login Church Admin", False, "No church admin created")
+            return False
+            
+        success, response = self.run_test(
+            "Login Church Admin",
+            "POST",
+            "auth/login",
+            200,
+            data={"email": self.church_admin_email, "password": self.church_admin_password}
+        )
+        
+        if success and 'token' in response:
+            self.church_token = response['token']
+            self.church_tenant_id = response.get('user', {}).get('tenant_id')
+            self.log_test("Church Token Extraction", True, f"Token obtained for tenant: {self.church_tenant_id}")
+            return True
+        else:
+            self.log_test("Church Token Extraction", False, "No token in response")
+            return False
 
     def test_church_dashboard(self):
         """Test church dashboard - requires tenant context"""
