@@ -99,6 +99,30 @@ export const churchAPI = {
             params: { channel, recipient_ids: recipientIds, message, subject } 
         }),
     getCommunicationHistory: () => api.get('/church/communication/history'),
+    
+    // Discipleship
+    getDiscipleshipTrails: () => api.get('/church/discipleship/trails'),
+    getDiscipleshipTrail: (id) => api.get(`/church/discipleship/trails/${id}`),
+    createDiscipleshipTrail: (data) => api.post('/church/discipleship/trails', data),
+    updateDiscipleshipTrail: (id, data) => api.put(`/church/discipleship/trails/${id}`, data),
+    deleteDiscipleshipTrail: (id) => api.delete(`/church/discipleship/trails/${id}`),
+    addTrailStep: (trailId, stepData) => api.post(`/church/discipleship/trails/${trailId}/steps`, stepData),
+    
+    getDiscipleshipProgress: () => api.get('/church/discipleship/progress'),
+    getMemberProgress: (memberId) => api.get(`/church/discipleship/progress/member/${memberId}`),
+    enrollInTrail: (memberId, trailId, mentorId) => 
+        api.post('/church/discipleship/enroll', null, { 
+            params: { member_id: memberId, trail_id: trailId, mentor_id: mentorId } 
+        }),
+    completeTrailStep: (progressId, stepId) => 
+        api.put(`/church/discipleship/progress/${progressId}/complete-step`, null, { 
+            params: { step_id: stepId } 
+        }),
+    completeDiscipleshipTrail: (progressId) => api.put(`/church/discipleship/progress/${progressId}/complete`),
+    
+    getDiscipleshipStats: () => api.get('/church/discipleship/stats'),
+    getMentorships: () => api.get('/church/discipleship/mentorship'),
+    createMentorship: (data) => api.post('/church/discipleship/mentorship', data),
 };
 
 // Public API
