@@ -72,3 +72,19 @@ Sistema completo SaaS Multi-Tenant para gestão de igrejas chamado "Firmes – N
 
 ## Demo Credentials
 - Super Admin: admin@firmesnafe.com / admin123
+
+## Update - Feb 2026: Módulo de Discipulado
+
+### Implementado:
+- [x] 5 Trilhas padrão: Primeiros Passos, Batismo, Crescimento Espiritual, Liderança, Família
+- [x] Sistema de etapas com tipos: texto, vídeo, quiz, tarefa
+- [x] Inscrição de membros em trilhas
+- [x] Sistema de mentoria (mentor-discípulo)
+- [x] Progresso por etapas com barra de conclusão
+- [x] Estatísticas: total, em andamento, concluídos, taxa de conclusão
+- [x] Categorias com ícones e cores diferenciados
+- [x] Níveis de dificuldade: Iniciante, Intermediário, Avançado
+
+### Credenciais Demo Igreja:
+- **Email**: pastor@vidanova.com
+- **Senha**: pastor123
