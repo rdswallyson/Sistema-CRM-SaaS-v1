@@ -1,0 +1,127 @@
+{
+  "design_system": {
+    "brand_name": "Firmes – Na Fé",
+    "theme_strategy": "Light Mode (Primary) with localized Dark Mode for High-Density Dashboards",
+    "emotional_archetype": "Organic & Earthy (Trust/Growth) mixed with Swiss/High-Contrast (Data Clarity)",
+    "typography": {
+      "headings": {
+        "family": "Outfit, sans-serif",
+        "weights": ["500", "700"],
+        "usage": "Use for all page titles, section headers, and modal titles. Tracking tight (-0.02em)."
+      },
+      "body": {
+        "family": "Plus Jakarta Sans, sans-serif",
+        "weights": ["400", "500", "600"],
+        "usage": "Use for all paragraphs, inputs, table data, and labels."
+      },
+      "mono": {
+        "family": "JetBrains Mono, monospace",
+        "usage": "Use for IDs, API keys, and financial transaction codes."
+      }
+    },
+    "colors": {
+      "palette": {
+        "primary_green": {
+          "DEFAULT": "#4ade80",
+          "hover": "#22c55e",
+          "active": "#15803d",
+          "subtle": "#dcfce7"
+        },
+        "primary_blue": {
+          "DEFAULT": "#3b82f6",
+          "hover": "#2563eb",
+          "active": "#1e40af",
+          "subtle": "#dbeafe"
+        },
+        "neutral": {
+          "white": "#ffffff",
+          "surface": "#f8fafc",
+          "border": "#e2e8f0",
+          "text_body": "#475569",
+          "text_heading": "#0f172a",
+          "obsidian": "#020617"
+        },
+        "semantic": {
+          "success": "#22c55e",
+          "warning": "#f59e0b",
+          "error": "#ef4444",
+          "info": "#0ea5e9"
+        }
+      },
+      "gradients": {
+        "brand_mesh": "radial-gradient(at 0% 0%, rgba(74, 222, 128, 0.15) 0px, transparent 50%), radial-gradient(at 100% 100%, rgba(59, 130, 246, 0.15) 0px, transparent 50%)",
+        "glass_surface": "linear-gradient(135deg, rgba(255,255,255,0.8), rgba(255,255,255,0.4))"
+      }
+    },
+    "spacing": {
+      "scale": "tailwind",
+      "dashboard_gap": "gap-4 md:gap-6",
+      "landing_section_pad": "py-24 md:py-32",
+      "card_padding": "p-6 md:p-8"
+    },
+    "layout_strategies": {
+      "landing_page": {
+        "grid_mode": "Tetris (Mode A)",
+        "container": "max-w-7xl mx-auto px-4 md:px-8",
+        "hero_style": "Split Asymmetry (Text Left, Visual Right with floating elements)"
+      },
+      "dashboard": {
+        "grid_mode": "Bento (Mode B)",
+        "sidebar_width": "w-64",
+        "card_style": "Flat with 1px border and distinct header area"
+      }
+    },
+    "component_styles": {
+      "buttons": {
+        "primary": "bg-slate-900 text-white hover:bg-slate-800 rounded-lg px-6 py-3 font-medium transition-transform active:scale-95 shadow-lg shadow-slate-900/20",
+        "secondary": "bg-white border border-slate-200 text-slate-900 hover:bg-slate-50 rounded-lg px-6 py-3 font-medium",
+        "brand": "bg-gradient-to-r from-blue-500 to-green-400 text-white font-bold hover:shadow-xl transition-all"
+      },
+      "cards": {
+        "dashboard": "bg-white border border-slate-100 shadow-sm rounded-xl overflow-hidden",
+        "feature": "bg-slate-50/50 hover:bg-white border border-transparent hover:border-slate-200 transition-all duration-300 rounded-2xl p-8 group"
+      },
+      "inputs": {
+        "default": "h-12 bg-white border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 rounded-lg"
+      }
+    },
+    "visual_enhancers": {
+      "textures": {
+        "noise": "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E\")"
+      },
+      "shadows": {
+        "floating": "0 20px 40px -10px rgba(0,0,0,0.1)",
+        "colored_glow": "0 0 40px -10px rgba(59, 130, 246, 0.3)"
+      }
+    },
+    "assets": {
+      "icons": {
+        "library": "lucide-react",
+        "style": "Stroke width 1.5px, slightly rounded corners"
+      },
+      "images": {
+        "hero_community": "https://images.unsplash.com/photo-1758275557470-008d0c65f2c6",
+        "feature_worship": "https://images.pexels.com/photos/10823376/pexels-photo-10823376.jpeg",
+        "feature_groups": "https://images.pexels.com/photos/3182768/pexels-photo-3182768.jpeg",
+        "feature_family": "https://images.pexels.com/photos/6114377/pexels-photo-6114377.jpeg",
+        "login_bg": "https://images.unsplash.com/photo-1628587469578-42240aedb73a"
+      }
+    }
+  },
+  "instructions_to_main_agent": [
+    "1. THEME SETUP: Update tailwind.config.js to use the provided color palette. Add 'Outfit' and 'Plus Jakarta Sans' fonts via Google Fonts.",
+    "2. LANDING PAGE: Build a high-impact 'Tetris' grid hero. Use the 'brand_mesh' gradient as a subtle background. Implement 'lenis' for smooth scrolling.",
+    "3. DASHBOARD: Create a 'Bento' grid layout. Use the 'neutral.surface' (#f8fafc) background for the app area, and pure white cards. Do NOT make everything white.",
+    "4. COMPONENTS: Customize Shadcn components. Remove the default 'radius-md' look and go for either full pill (rounded-full) or tight (rounded-lg) to be distinct.",
+    "5. CHARTS: Use Recharts with the specific palette: Green (#4ade80) for Growth, Blue (#3b82f6) for Retention, Obsidian (#020617) for Financials.",
+    "6. MICRO-INTERACTIONS: Add hover states to every interactive element. Use `transform: translateY(-2px)` on cards.",
+    "7. IMAGE HANDLING: Use `next/image` or standard `img` with `object-cover` and rounded corners. Always add a subtle border (`border-white/10` or `border-black/5`) to images to separate them from the bg."
+  ],
+  "universal_guidelines": [
+    "Do not use generic centered layouts.",
+    "Create depth through layered design elements (z-index).",
+    "Use glass-morphism effects with backdrop filters.",
+    "NEVER use transition: all.",
+    "Interactive elements must have data-testid attributes."
+  ]
+}
