@@ -119,7 +119,7 @@ export default function LoginPage() {
 
                         <div className="mt-4 p-3 bg-slate-50 rounded-lg">
                             <p className="text-xs text-slate-500 text-center">
-                                <strong>Demo:</strong> admin@firmesnafe.com / admin123
+                                <strong>Demo:</strong> admin@firmes.com / admin123
                             </p>
                         </div>
                     </CardContent>
