@@ -118,9 +118,17 @@ export default function MembersPage() {
             phone: member.phone || '',
             address: member.address || '',
             birth_date: member.birth_date || '',
+            gender: member.gender || '',
+            marital_status: member.marital_status || '',
+            profession: member.profession || '',
+            photo_url: member.photo_url || '',
             status: member.status || 'visitor',
             baptism_date: member.baptism_date || '',
             conversion_date: member.conversion_date || '',
+            family_id: member.family_id || '',
+            family_role: member.family_role || '',
+            ministry_ids: member.ministry_ids || [],
+            spiritual_gifts: member.spiritual_gifts || [],
             notes: member.notes || '',
         });
         setDialogOpen(true);
