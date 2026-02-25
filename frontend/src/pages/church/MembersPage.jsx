@@ -196,8 +196,34 @@ export default function MembersPage() {
                                 {editingMember ? 'Editar Membro' : 'Cadastrar Membro'}
                             </DialogTitle>
                         </DialogHeader>
-                        <form onSubmit={handleSubmit} className="space-y-4">
+                        <form onSubmit={handleSubmit} className="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
+                            {/* Photo Section */}
+                            <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl">
+                                <div className="w-20 h-20 rounded-xl bg-slate-200 flex items-center justify-center overflow-hidden border-2 border-white shadow">
+                                    {formData.photo_url ? (
+                                        <img src={formData.photo_url} alt="Foto" className="w-full h-full object-cover" />
+                                    ) : (
+                                        <Users className="w-8 h-8 text-slate-400" />
+                                    )}
+                                </div>
+                                <div className="flex-1">
+                                    <Label htmlFor="photo_url">URL da Foto</Label>
+                                    <Input
+                                        id="photo_url"
+                                        value={formData.photo_url}
+                                        onChange={(e) => setFormData({ ...formData, photo_url: e.target.value })}
+                                        placeholder="https://exemplo.com/foto.jpg"
+                                        className="mt-1"
+                                        data-testid="member-photo-input"
+                                    />
+                                </div>
+                            </div>
+
                             <div className="grid grid-cols-2 gap-4">
+                                {/* Dados Pessoais */}
+                                <div className="col-span-2">
+                                    <p className="text-sm font-medium text-slate-700 mb-2">Dados Pessoais</p>
+                                </div>
                                 <div className="col-span-2 space-y-2">
                                     <Label htmlFor="name">Nome Completo *</Label>
                                     <Input
@@ -230,16 +256,6 @@ export default function MembersPage() {
                                         data-testid="member-phone-input"
                                     />
                                 </div>
-                                <div className="col-span-2 space-y-2">
-                                    <Label htmlFor="address">Endereço</Label>
-                                    <Input
-                                        id="address"
-                                        value={formData.address}
-                                        onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                                        placeholder="Rua, número, bairro"
-                                        data-testid="member-address-input"
-                                    />
-                                </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="birth_date">Data de Nascimento</Label>
                                     <Input
@@ -249,6 +265,63 @@ export default function MembersPage() {
                                         onChange={(e) => setFormData({ ...formData, birth_date: e.target.value })}
                                         data-testid="member-birth-input"
                                     />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="gender">Gênero</Label>
+                                    <Select
+                                        value={formData.gender}
+                                        onValueChange={(value) => setFormData({ ...formData, gender: value })}
+                                    >
+                                        <SelectTrigger data-testid="member-gender-select">
+                                            <SelectValue placeholder="Selecione" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="male">Masculino</SelectItem>
+                                            <SelectItem value="female">Feminino</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="marital_status">Estado Civil</Label>
+                                    <Select
+                                        value={formData.marital_status}
+                                        onValueChange={(value) => setFormData({ ...formData, marital_status: value })}
+                                    >
+                                        <SelectTrigger data-testid="member-marital-select">
+                                            <SelectValue placeholder="Selecione" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="single">Solteiro(a)</SelectItem>
+                                            <SelectItem value="married">Casado(a)</SelectItem>
+                                            <SelectItem value="divorced">Divorciado(a)</SelectItem>
+                                            <SelectItem value="widowed">Viúvo(a)</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="profession">Profissão</Label>
+                                    <Input
+                                        id="profession"
+                                        value={formData.profession}
+                                        onChange={(e) => setFormData({ ...formData, profession: e.target.value })}
+                                        placeholder="Ex: Professor"
+                                        data-testid="member-profession-input"
+                                    />
+                                </div>
+                                <div className="col-span-2 space-y-2">
+                                    <Label htmlFor="address">Endereço</Label>
+                                    <Input
+                                        id="address"
+                                        value={formData.address}
+                                        onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                                        placeholder="Rua, número, bairro, cidade"
+                                        data-testid="member-address-input"
+                                    />
+                                </div>
+
+                                {/* Status na Igreja */}
+                                <div className="col-span-2 pt-4 border-t">
+                                    <p className="text-sm font-medium text-slate-700 mb-2">Status na Igreja</p>
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="status">Status</Label>
@@ -268,6 +341,38 @@ export default function MembersPage() {
                                     </Select>
                                 </div>
                                 <div className="space-y-2">
+                                    <Label htmlFor="family_role">Papel na Família</Label>
+                                    <Select
+                                        value={formData.family_role}
+                                        onValueChange={(value) => setFormData({ ...formData, family_role: value })}
+                                    >
+                                        <SelectTrigger data-testid="member-family-role-select">
+                                            <SelectValue placeholder="Selecione" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="head">Chefe de Família</SelectItem>
+                                            <SelectItem value="spouse">Cônjuge</SelectItem>
+                                            <SelectItem value="child">Filho(a)</SelectItem>
+                                            <SelectItem value="other">Outro</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+                                {/* Histórico Espiritual */}
+                                <div className="col-span-2 pt-4 border-t">
+                                    <p className="text-sm font-medium text-slate-700 mb-2">Histórico Espiritual</p>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="conversion_date">Data de Conversão</Label>
+                                    <Input
+                                        id="conversion_date"
+                                        type="date"
+                                        value={formData.conversion_date}
+                                        onChange={(e) => setFormData({ ...formData, conversion_date: e.target.value })}
+                                        data-testid="member-conversion-input"
+                                    />
+                                </div>
+                                <div className="space-y-2">
                                     <Label htmlFor="baptism_date">Data de Batismo</Label>
                                     <Input
                                         id="baptism_date"
@@ -277,7 +382,6 @@ export default function MembersPage() {
                                         data-testid="member-baptism-input"
                                     />
                                 </div>
-                                <div className="space-y-2">
                                     <Label htmlFor="conversion_date">Data de Conversão</Label>
                                     <Input
                                         id="conversion_date"
