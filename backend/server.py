@@ -27,7 +27,7 @@ JWT_SECRET = os.environ.get('JWT_SECRET', 'default-secret-key')
 JWT_ALGORITHM = os.environ.get('JWT_ALGORITHM', 'HS256')
 JWT_EXPIRATION_HOURS = int(os.environ.get('JWT_EXPIRATION_HOURS', 24))
 
-app = FastAPI(title="Firmes na Fé - Church Management SaaS")
+app = FastAPI(title="Firmes - Church Management SaaS")
 api_router = APIRouter(prefix="/api")
 security = HTTPBearer()
 
@@ -350,7 +350,7 @@ async def require_church_admin(current_user: dict = Depends(get_current_user)):
 # ==================== PUBLIC ROUTES ====================
 @api_router.get("/")
 async def root():
-    return {"message": "Firmes na Fé - API", "version": "1.0.0"}
+    return {"message": "Firmes - API", "version": "1.0.0"}
 
 @api_router.get("/health")
 async def health_check():
@@ -1244,12 +1244,12 @@ async def stripe_webhook(request: Request):
 @api_router.post("/seed/super-admin")
 async def seed_super_admin():
     """Create initial super admin user"""
-    existing = await db.users.find_one({"email": "admin@firmesnafe.com"}, {"_id": 0})
+    existing = await db.users.find_one({"email": "admin@firmes.com"}, {"_id": 0})
     if existing:
-        return {"message": "Super Admin já existe", "email": "admin@firmesnafe.com"}
+        return {"message": "Super Admin já existe", "email": "admin@firmes.com"}
     
     admin = User(
-        email="admin@firmesnafe.com",
+        email="admin@firmes.com",
         name="Super Admin",
         role=UserRole.SUPER_ADMIN
     )
@@ -1258,7 +1258,7 @@ async def seed_super_admin():
     doc['created_at'] = doc['created_at'].isoformat()
     await db.users.insert_one(doc)
     
-    return {"message": "Super Admin criado", "email": "admin@firmesnafe.com", "password": "admin123"}
+    return {"message": "Super Admin criado", "email": "admin@firmes.com", "password": "admin123"}
 
 @api_router.post("/seed/plans")
 async def seed_plans():
