@@ -222,23 +222,34 @@ class ChurchSaaSTester:
 
     def test_church_dashboard(self):
         """Test church dashboard - requires tenant context"""
-        if not self.token:
-            self.log_test("Church Dashboard", False, "No token available")
+        if not hasattr(self, 'church_token'):
+            self.log_test("Church Dashboard", False, "No church admin token available")
             return False
-            
+        
+        # Temporarily switch to church admin token
+        original_token = self.token
+        self.token = self.church_token
+        
         success, response = self.run_test(
             "Church Dashboard",
             "GET",
             "church/dashboard",
             200
         )
+        
+        # Restore original token
+        self.token = original_token
         return success
 
     def test_create_member(self):
         """Test creating a church member"""
-        if not self.token:
-            self.log_test("Create Member", False, "No token available")
+        if not hasattr(self, 'church_token'):
+            self.log_test("Create Member", False, "No church admin token available")
             return False
+        
+        # Temporarily switch to church admin token
+        original_token = self.token
+        self.token = self.church_token
             
         member_data = {
             "name": "João da Silva",
@@ -259,13 +270,19 @@ class ChurchSaaSTester:
         if success:
             self.test_member_id = response.get('id')
         
+        # Restore original token
+        self.token = original_token
         return success
 
     def test_list_members(self):
         """Test listing church members"""
-        if not self.token:
-            self.log_test("List Members", False, "No token available")
+        if not hasattr(self, 'church_token'):
+            self.log_test("List Members", False, "No church admin token available")
             return False
+        
+        # Temporarily switch to church admin token
+        original_token = self.token
+        self.token = self.church_token
             
         success, response = self.run_test(
             "List Members",
@@ -273,13 +290,20 @@ class ChurchSaaSTester:
             "church/members",
             200
         )
+        
+        # Restore original token
+        self.token = original_token
         return success
 
     def test_create_ministry(self):
         """Test creating a ministry"""
-        if not self.token:
-            self.log_test("Create Ministry", False, "No token available")
+        if not hasattr(self, 'church_token'):
+            self.log_test("Create Ministry", False, "No church admin token available")
             return False
+        
+        # Temporarily switch to church admin token
+        original_token = self.token
+        self.token = self.church_token
             
         ministry_data = {
             "name": "Ministério de Louvor",
@@ -298,13 +322,19 @@ class ChurchSaaSTester:
         if success:
             self.test_ministry_id = response.get('id')
         
+        # Restore original token
+        self.token = original_token
         return success
 
     def test_list_ministries(self):
         """Test listing ministries"""
-        if not self.token:
-            self.log_test("List Ministries", False, "No token available")
+        if not hasattr(self, 'church_token'):
+            self.log_test("List Ministries", False, "No church admin token available")
             return False
+        
+        # Temporarily switch to church admin token
+        original_token = self.token
+        self.token = self.church_token
             
         success, response = self.run_test(
             "List Ministries",
@@ -312,13 +342,20 @@ class ChurchSaaSTester:
             "church/ministries",
             200
         )
+        
+        # Restore original token
+        self.token = original_token
         return success
 
     def test_create_event(self):
         """Test creating an event"""
-        if not self.token:
-            self.log_test("Create Event", False, "No token available")
+        if not hasattr(self, 'church_token'):
+            self.log_test("Create Event", False, "No church admin token available")
             return False
+        
+        # Temporarily switch to church admin token
+        original_token = self.token
+        self.token = self.church_token
             
         event_data = {
             "title": "Culto de Domingo",
@@ -339,13 +376,19 @@ class ChurchSaaSTester:
         if success:
             self.test_event_id = response.get('id')
         
+        # Restore original token
+        self.token = original_token
         return success
 
     def test_list_events(self):
         """Test listing events"""
-        if not self.token:
-            self.log_test("List Events", False, "No token available")
+        if not hasattr(self, 'church_token'):
+            self.log_test("List Events", False, "No church admin token available")
             return False
+        
+        # Temporarily switch to church admin token
+        original_token = self.token
+        self.token = self.church_token
             
         success, response = self.run_test(
             "List Events",
@@ -353,13 +396,20 @@ class ChurchSaaSTester:
             "church/events",
             200
         )
+        
+        # Restore original token
+        self.token = original_token
         return success
 
     def test_create_donation(self):
         """Test creating a donation"""
-        if not self.token:
-            self.log_test("Create Donation", False, "No token available")
+        if not hasattr(self, 'church_token'):
+            self.log_test("Create Donation", False, "No church admin token available")
             return False
+        
+        # Temporarily switch to church admin token
+        original_token = self.token
+        self.token = self.church_token
             
         donation_data = {
             "member_name": "João da Silva",
@@ -377,13 +427,19 @@ class ChurchSaaSTester:
             data=donation_data
         )
         
+        # Restore original token
+        self.token = original_token
         return success
 
     def test_list_donations(self):
         """Test listing donations"""
-        if not self.token:
-            self.log_test("List Donations", False, "No token available")
+        if not hasattr(self, 'church_token'):
+            self.log_test("List Donations", False, "No church admin token available")
             return False
+        
+        # Temporarily switch to church admin token
+        original_token = self.token
+        self.token = self.church_token
             
         success, response = self.run_test(
             "List Donations",
@@ -391,13 +447,20 @@ class ChurchSaaSTester:
             "church/donations",
             200
         )
+        
+        # Restore original token
+        self.token = original_token
         return success
 
     def test_financial_summary(self):
         """Test financial summary"""
-        if not self.token:
-            self.log_test("Financial Summary", False, "No token available")
+        if not hasattr(self, 'church_token'):
+            self.log_test("Financial Summary", False, "No church admin token available")
             return False
+        
+        # Temporarily switch to church admin token
+        original_token = self.token
+        self.token = self.church_token
             
         success, response = self.run_test(
             "Financial Summary",
@@ -405,6 +468,9 @@ class ChurchSaaSTester:
             "church/financial/summary",
             200
         )
+        
+        # Restore original token
+        self.token = original_token
         return success
 
     def run_all_tests(self):
