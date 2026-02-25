@@ -154,9 +154,17 @@ export default function MembersPage() {
             phone: '',
             address: '',
             birth_date: '',
+            gender: '',
+            marital_status: '',
+            profession: '',
+            photo_url: '',
             status: 'visitor',
             baptism_date: '',
             conversion_date: '',
+            family_id: '',
+            family_role: '',
+            ministry_ids: [],
+            spiritual_gifts: [],
             notes: '',
         });
     };
