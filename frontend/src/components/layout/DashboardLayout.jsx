@@ -27,6 +27,7 @@ import {
     Tag,
     BarChart3,
     ChevronRight,
+    BookOpen,
 } from 'lucide-react';
 
 const adminNavItems = [
@@ -42,6 +43,7 @@ const churchNavItems = [
     { path: '/dashboard/ministries', label: 'Ministérios', icon: Church },
     { path: '/dashboard/events', label: 'Eventos', icon: Calendar },
     { path: '/dashboard/financial', label: 'Financeiro', icon: DollarSign },
+    { path: '/dashboard/discipleship', label: 'Discipulado', icon: BookOpen },
     { path: '/dashboard/communication', label: 'Comunicação', icon: MessageSquare },
     { path: '/dashboard/settings', label: 'Configurações', icon: Settings },
 ];
