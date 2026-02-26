@@ -474,13 +474,20 @@ export default function MembersPage() {
                                     {filteredMembers.map((member) => (
                                         <tr key={member.id} className="border-b border-slate-50 hover:bg-slate-50">
                                             <td className="py-3 px-4">
-                                                <div>
-                                                    <p className="font-medium text-slate-900">{member.name}</p>
-                                                    {member.birth_date && (
-                                                        <p className="text-sm text-slate-500">
-                                                            Nasc: {formatDate(member.birth_date)}
-                                                        </p>
-                                                    )}
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center overflow-hidden shrink-0">
+                                                        {member.photo_url ? (
+                                                            <img src={member.photo_url} alt={member.name} className="w-full h-full object-cover" />
+                                                        ) : (
+                                                            <Users className="w-5 h-5 text-slate-400" />
+                                                        )}
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-medium text-slate-900">{member.name}</p>
+                                                        {member.profession && (
+                                                            <p className="text-sm text-slate-500">{member.profession}</p>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </td>
                                             <td className="py-3 px-4 hidden md:table-cell">
