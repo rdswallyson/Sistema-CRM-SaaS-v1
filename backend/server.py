@@ -655,6 +655,31 @@ async def get_event(event_id: str, current_user: dict = Depends(require_church_a
         raise HTTPException(status_code=404, detail="Evento não encontrado")
     return event
 
+@api_router.put("/church/events/{event_id}")
+async def update_event(event_id: str, updates: Dict[str, Any], current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    query = {"id": event_id}
+    if tenant_id:
+        query["tenant_id"] = tenant_id
+    
+    updates['updated_at'] = datetime.now(timezone.utc).isoformat()
+    result = await db.events.update_one(query, {"$set": updates})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Evento não encontrado")
+    return {"message": "Evento atualizado com sucesso"}
+
+@api_router.delete("/church/events/{event_id}")
+async def delete_event(event_id: str, current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    query = {"id": event_id}
+    if tenant_id:
+        query["tenant_id"] = tenant_id
+    
+    result = await db.events.delete_one(query)
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Evento não encontrado")
+    return {"message": "Evento removido com sucesso"}
+
 @api_router.post("/church/events/{event_id}/checkin")
 async def event_checkin(event_id: str, member_id: str, current_user: dict = Depends(require_church_admin)):
     tenant_id = current_user.get('tenant_id')

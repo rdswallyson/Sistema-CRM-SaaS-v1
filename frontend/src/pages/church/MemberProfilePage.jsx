@@ -178,8 +178,12 @@ export default function MemberProfilePage() {
                 <div className="h-24 bg-gradient-to-r from-brand-sky to-brand-blue"></div>
                 <CardContent className="relative pt-0">
                     <div className="flex flex-col sm:flex-row items-start sm:items-end gap-4 -mt-12">
-                        <div className="w-24 h-24 rounded-xl bg-white shadow-lg flex items-center justify-center border-4 border-white">
-                            <User className="w-12 h-12 text-slate-400" />
+                        <div className="w-24 h-24 rounded-xl bg-white shadow-lg flex items-center justify-center border-4 border-white overflow-hidden">
+                            {member.photo_url ? (
+                                <img src={member.photo_url} alt={member.name} className="w-full h-full object-cover" data-testid="member-profile-photo" />
+                            ) : (
+                                <User className="w-12 h-12 text-slate-400" />
+                            )}
                         </div>
                         <div className="flex-1">
                             <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
