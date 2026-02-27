@@ -27,9 +27,10 @@ import {
     Calendar,
     MapPin,
     Users,
-    DollarSign,
     QrCode,
     Loader2,
+    Edit,
+    Trash2,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -38,6 +39,7 @@ export default function EventsPage() {
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [dialogOpen, setDialogOpen] = useState(false);
+    const [editingEvent, setEditingEvent] = useState(null);
     const [formData, setFormData] = useState({
         title: '',
         description: '',
@@ -76,26 +78,64 @@ export default function EventsPage() {
                 max_capacity: formData.max_capacity ? parseInt(formData.max_capacity) : null,
                 price: formData.is_paid ? parseFloat(formData.price) : 0,
             };
-            await churchAPI.createEvent(eventData);
-            toast.success('Evento criado com sucesso!');
+
+            if (editingEvent) {
+                await churchAPI.updateEvent(editingEvent.id, eventData);
+                toast.success('Evento atualizado com sucesso!');
+            } else {
+                await churchAPI.createEvent(eventData);
+                toast.success('Evento criado com sucesso!');
+            }
+
             setDialogOpen(false);
-            setFormData({
-                title: '',
-                description: '',
-                event_date: '',
-                event_time: '',
-                location: '',
-                max_capacity: '',
-                is_paid: false,
-                price: 0,
-            });
+            resetForm();
             fetchEvents();
         } catch (error) {
-            const message = error.response?.data?.detail || 'Erro ao criar evento';
+            const message = error.response?.data?.detail || 'Erro ao salvar evento';
             toast.error(message);
         } finally {
             setSubmitting(false);
         }
+    };
+
+    const handleEdit = (event) => {
+        setEditingEvent(event);
+        setFormData({
+            title: event.title || '',
+            description: event.description || '',
+            event_date: event.event_date || '',
+            event_time: event.event_time || '',
+            location: event.location || '',
+            max_capacity: event.max_capacity ? String(event.max_capacity) : '',
+            is_paid: event.is_paid || false,
+            price: event.price || 0,
+        });
+        setDialogOpen(true);
+    };
+
+    const handleDelete = async (event) => {
+        if (!window.confirm(`Tem certeza que deseja excluir "${event.title}"?`)) return;
+        try {
+            await churchAPI.deleteEvent(event.id);
+            toast.success('Evento excluido com sucesso');
+            fetchEvents();
+        } catch (error) {
+            toast.error('Erro ao excluir evento');
+        }
+    };
+
+    const resetForm = () => {
+        setEditingEvent(null);
+        setFormData({
+            title: '',
+            description: '',
+            event_date: '',
+            event_time: '',
+            location: '',
+            max_capacity: '',
+            is_paid: false,
+            price: 0,
+        });
     };
 
     const filteredEvents = events.filter((e) =>
@@ -111,7 +151,7 @@ export default function EventsPage() {
                     <h1 className="font-heading text-2xl font-bold text-slate-900">Eventos</h1>
                     <p className="text-slate-500">Gerencie os eventos da sua igreja</p>
                 </div>
-                <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) resetForm(); }}>
                     <DialogTrigger asChild>
                         <Button className="bg-slate-900 hover:bg-slate-800" data-testid="add-event-btn">
                             <Plus className="w-4 h-4 mr-2" />
@@ -120,27 +160,29 @@ export default function EventsPage() {
                     </DialogTrigger>
                     <DialogContent className="max-w-md">
                         <DialogHeader>
-                            <DialogTitle className="font-heading">Criar Evento</DialogTitle>
+                            <DialogTitle className="font-heading">
+                                {editingEvent ? 'Editar Evento' : 'Criar Evento'}
+                            </DialogTitle>
                         </DialogHeader>
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div className="space-y-2">
-                                <Label htmlFor="title">Título do Evento *</Label>
+                                <Label htmlFor="title">Titulo do Evento *</Label>
                                 <Input
                                     id="title"
                                     value={formData.title}
                                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                                    placeholder="Ex: Culto de Celebração"
+                                    placeholder="Ex: Culto de Celebracao"
                                     required
                                     data-testid="event-title-input"
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="description">Descrição</Label>
+                                <Label htmlFor="description">Descricao</Label>
                                 <textarea
                                     id="description"
                                     value={formData.description}
                                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                    placeholder="Descrição do evento..."
+                                    placeholder="Descricao do evento..."
                                     className="w-full h-20 px-3 py-2 border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-brand-blue/20"
                                     data-testid="event-description-input"
                                 />
@@ -158,7 +200,7 @@ export default function EventsPage() {
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="event_time">Horário</Label>
+                                    <Label htmlFor="event_time">Horario</Label>
                                     <Input
                                         id="event_time"
                                         type="time"
@@ -192,7 +234,7 @@ export default function EventsPage() {
                             <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
                                 <div>
                                     <Label htmlFor="is_paid" className="cursor-pointer">Evento Pago</Label>
-                                    <p className="text-xs text-slate-500">Cobra inscrição dos participantes</p>
+                                    <p className="text-xs text-slate-500">Cobra inscricao dos participantes</p>
                                 </div>
                                 <Switch
                                     id="is_paid"
@@ -219,15 +261,15 @@ export default function EventsPage() {
                                 type="submit"
                                 className="w-full bg-slate-900 hover:bg-slate-800"
                                 disabled={submitting}
-                                data-testid="create-event-btn"
+                                data-testid="save-event-btn"
                             >
                                 {submitting ? (
                                     <>
                                         <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                        Criando...
+                                        {editingEvent ? 'Salvando...' : 'Criando...'}
                                     </>
                                 ) : (
-                                    'Criar Evento'
+                                    editingEvent ? 'Salvar Alteracoes' : 'Criar Evento'
                                 )}
                             </Button>
                         </form>
@@ -273,13 +315,28 @@ export default function EventsPage() {
                                                 : 'bg-brand-sky/10 text-brand-sky-active'
                                         }
                                     >
-                                        {isPastEvent(event.event_date) ? 'Encerrado' : 'Próximo'}
+                                        {isPastEvent(event.event_date) ? 'Encerrado' : 'Proximo'}
                                     </Badge>
-                                    {event.is_paid && (
-                                        <Badge className="bg-amber-100 text-amber-700">
-                                            {formatCurrency(event.price)}
-                                        </Badge>
-                                    )}
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button variant="ghost" size="sm" data-testid={`event-menu-${event.id}`}>
+                                                <MoreVertical className="w-4 h-4" />
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end">
+                                            <DropdownMenuItem onClick={() => handleEdit(event)}>
+                                                <Edit className="w-4 h-4 mr-2" />
+                                                Editar
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem
+                                                onClick={() => handleDelete(event)}
+                                                className="text-red-600"
+                                            >
+                                                <Trash2 className="w-4 h-4 mr-2" />
+                                                Excluir
+                                            </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
                                 </div>
                                 <CardTitle className="font-heading text-xl mt-4">{event.title}</CardTitle>
                             </CardHeader>
@@ -292,7 +349,7 @@ export default function EventsPage() {
                                         <Calendar className="w-4 h-4 text-slate-400" />
                                         <span className="text-slate-600">
                                             {formatDate(event.event_date)}
-                                            {event.event_time && ` às ${event.event_time}`}
+                                            {event.event_time && ` as ${event.event_time}`}
                                         </span>
                                     </div>
                                     {event.location && (
@@ -309,6 +366,13 @@ export default function EventsPage() {
                                         </span>
                                     </div>
                                 </div>
+                                {event.is_paid && (
+                                    <div className="mt-3">
+                                        <Badge className="bg-amber-100 text-amber-700">
+                                            {formatCurrency(event.price)}
+                                        </Badge>
+                                    </div>
+                                )}
                                 <div className="mt-4 pt-4 border-t border-slate-100 flex gap-2">
                                     <Button variant="outline" size="sm" className="flex-1" data-testid={`checkin-btn-${event.id}`}>
                                         <QrCode className="w-4 h-4 mr-1" />
