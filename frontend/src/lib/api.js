@@ -86,6 +86,8 @@ export const churchAPI = {
     getEvents: () => api.get('/church/events'),
     getEvent: (id) => api.get(`/church/events/${id}`),
     createEvent: (data) => api.post('/church/events', data),
+    updateEvent: (id, data) => api.put(`/church/events/${id}`, data),
+    deleteEvent: (id) => api.delete(`/church/events/${id}`),
     eventCheckin: (eventId, memberId) => api.post(`/church/events/${eventId}/checkin?member_id=${memberId}`),
     
     // Donations
