@@ -160,26 +160,50 @@ export default function DiscipleshipPage() {
         }
     };
 
+    const [editingTrail, setEditingTrail] = useState(null);
+
     const handleCreateTrail = async (e) => {
         e.preventDefault();
         setSubmitting(true);
         try {
-            await churchAPI.createDiscipleshipTrail(trailForm);
-            toast.success('Trilha criada com sucesso!');
+            if (editingTrail) {
+                await churchAPI.updateDiscipleshipTrail(editingTrail.id, trailForm);
+                toast.success('Trilha atualizada com sucesso!');
+            } else {
+                await churchAPI.createDiscipleshipTrail(trailForm);
+                toast.success('Trilha criada com sucesso!');
+            }
             setTrailDialogOpen(false);
-            setTrailForm({
-                name: '',
-                description: '',
-                difficulty: 'beginner',
-                category: 'general',
-                estimated_weeks: 4,
-            });
+            resetTrailForm();
             fetchData();
         } catch (error) {
-            toast.error('Erro ao criar trilha');
+            toast.error('Erro ao salvar trilha');
         } finally {
             setSubmitting(false);
         }
+    };
+
+    const handleEditTrail = (trail) => {
+        setEditingTrail(trail);
+        setTrailForm({
+            name: trail.name || '',
+            description: trail.description || '',
+            difficulty: trail.difficulty || 'beginner',
+            category: trail.category || 'general',
+            estimated_weeks: trail.estimated_weeks || 4,
+        });
+        setTrailDialogOpen(true);
+    };
+
+    const resetTrailForm = () => {
+        setEditingTrail(null);
+        setTrailForm({
+            name: '',
+            description: '',
+            difficulty: 'beginner',
+            category: 'general',
+            estimated_weeks: 4,
+        });
     };
 
     const handleEnrollMember = async (e) => {
