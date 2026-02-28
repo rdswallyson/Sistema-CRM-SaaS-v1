@@ -125,6 +125,12 @@ export const churchAPI = {
         }),
     getCommunicationHistory: () => api.get('/church/communication/history'),
     
+    // Birthday Greetings
+    getBirthdayTemplate: () => api.get('/church/birthday-greetings/template'),
+    updateBirthdayTemplate: (data) => api.put('/church/birthday-greetings/template', data),
+    getBirthdayGreetingStatus: () => api.get('/church/birthday-greetings/status'),
+    sendBirthdayGreetings: () => api.post('/church/birthday-greetings/send'),
+    
     // Discipleship
     getDiscipleshipTrails: () => api.get('/church/discipleship/trails'),
     getDiscipleshipTrail: (id) => api.get(`/church/discipleship/trails/${id}`),
