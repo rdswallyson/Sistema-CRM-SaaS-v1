@@ -1288,36 +1288,6 @@ async def update_menu_customization(items: List[MenuPersonalizationBase], curren
         )
     return {"message": "Menus atualizados com sucesso"}
 
-# ==================== MEMBER BIRTHDAYS ====================
-@api_router.get("/church/members/birthdays")
-async def get_member_birthdays(month: Optional[int] = None, current_user: dict = Depends(require_church_admin)):
-    tenant_id = current_user.get('tenant_id')
-    if not tenant_id:
-        raise HTTPException(status_code=400, detail="Tenant ID não encontrado")
-    query = {"tenant_id": tenant_id, "birth_date": {"$exists": True, "$ne": None, "$ne": ""}}
-    members = await db.members.find(query, {"_id": 0}).to_list(5000)
-    target_month = month or datetime.now(timezone.utc).month
-    today_str = datetime.now(timezone.utc).strftime("%m-%d")
-    birthdays = []
-    for m in members:
-        bd = m.get('birth_date', '')
-        if not bd:
-            continue
-        try:
-            parts = bd.split('-')
-            if len(parts) == 3:
-                bm = int(parts[1])
-                bd_day = int(parts[2])
-                if bm == target_month:
-                    m['birth_day'] = bd_day
-                    m['is_today'] = bd.endswith(today_str)
-                    birthdays.append(m)
-        except (ValueError, IndexError):
-            continue
-    birthdays.sort(key=lambda x: x.get('birth_day', 0))
-    return birthdays
-
-
 @api_router.post("/seed/discipleship-trails")
 async def seed_discipleship_trails():
     """Create default discipleship trails"""
