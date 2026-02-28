@@ -265,15 +265,43 @@ export default function ChurchDashboard() {
                                                 )}
                                             </div>
                                             <span className="text-sm text-amber-800">{m.name}</span>
+                                            {greetingSentIds.includes(m.id) && (
+                                                <CheckCircle className="w-3.5 h-3.5 text-green-600" />
+                                            )}
                                         </div>
                                     ))}
                                 </div>
                             </div>
-                            <Link to="/dashboard/members/birthdays">
-                                <Button variant="outline" size="sm" className="border-amber-300 text-amber-700 hover:bg-amber-100" data-testid="view-birthdays-btn">
-                                    Ver todos <ChevronRight className="w-4 h-4 ml-1" />
-                                </Button>
-                            </Link>
+                            <div className="flex items-center gap-2 shrink-0">
+                                {allGreetingsSent ? (
+                                    <Badge className="bg-green-100 text-green-700 border-green-200" data-testid="greetings-sent-badge">
+                                        <CheckCircle className="w-3.5 h-3.5 mr-1" /> Parabéns enviado
+                                    </Badge>
+                                ) : (
+                                    <Button
+                                        size="sm"
+                                        className="bg-amber-600 hover:bg-amber-700 text-white"
+                                        onClick={handleSendGreetings}
+                                        disabled={sendingGreetings}
+                                        data-testid="send-greetings-btn"
+                                    >
+                                        {sendingGreetings ? (
+                                            <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                                        ) : (
+                                            <Send className="w-4 h-4 mr-1" />
+                                        )}
+                                        {pendingGreetings.length === todayBirthdays.length
+                                            ? 'Enviar Parabéns'
+                                            : `Enviar (${pendingGreetings.length} restante${pendingGreetings.length > 1 ? 's' : ''})`
+                                        }
+                                    </Button>
+                                )}
+                                <Link to="/dashboard/members/birthdays">
+                                    <Button variant="outline" size="sm" className="border-amber-300 text-amber-700 hover:bg-amber-100" data-testid="view-birthdays-btn">
+                                        Ver todos <ChevronRight className="w-4 h-4 ml-1" />
+                                    </Button>
+                                </Link>
+                            </div>
                         </div>
                     </CardContent>
                 </Card>
