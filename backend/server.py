@@ -317,6 +317,56 @@ class CommunicationLog(BaseModel):
     sent_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     status: str = "pending"
 
+# ==================== MEMBER CATEGORIES ====================
+class MemberCategoryBase(BaseModel):
+    name: str
+    description: Optional[str] = None
+    color: str = "#3b82f6"
+
+class MemberCategory(MemberCategoryBase):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    tenant_id: str
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+# ==================== MEMBER POSITIONS (CARGOS) ====================
+class MemberPositionBase(BaseModel):
+    name: str
+    description: Optional[str] = None
+    hierarchy_level: int = 0
+
+class MemberPosition(MemberPositionBase):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    tenant_id: str
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+# ==================== CUSTOM FIELDS ====================
+class CustomFieldBase(BaseModel):
+    name: str
+    field_type: str = "text"  # text, number, date, select, checkbox
+    options: List[str] = []
+    is_required: bool = False
+    is_active: bool = True
+    order: int = 0
+
+class CustomField(CustomFieldBase):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    tenant_id: str
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+# ==================== MENU PERSONALIZATION ====================
+class MenuPersonalizationBase(BaseModel):
+    menu_key: str
+    display_name: str
+
+class MenuPersonalization(MenuPersonalizationBase):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    tenant_id: str
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
 # ==================== AUTH HELPERS ====================
 def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
