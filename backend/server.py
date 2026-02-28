@@ -1116,6 +1116,7 @@ async def get_church_dashboard(current_user: dict = Depends(require_church_admin
         "total_members": total_members,
         "total_visitors": total_visitors,
         "total_ministries": total_ministries,
+        "total_departments": total_departments,
         "monthly_revenue": total_revenue,
         "upcoming_events": upcoming_events,
         "members_by_status": members_by_status,
