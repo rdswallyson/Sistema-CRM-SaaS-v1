@@ -39,6 +39,10 @@ import {
     Cake,
     FileText,
     Pencil,
+    GraduationCap,
+    School,
+    ClipboardList,
+    Download,
 } from 'lucide-react';
 
 const adminNavItems = [
