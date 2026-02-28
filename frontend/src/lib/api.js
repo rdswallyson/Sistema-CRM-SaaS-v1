@@ -110,6 +110,20 @@ export const churchAPI = {
     getDepartmentMembers: (id) => api.get(`/church/departments/${id}/members`),
     migrateMinistriesToDepartments: () => api.post('/migrate/ministries-to-departments'),
     
+    // Groups
+    getGroups: (params) => api.get('/church/groups', { params }),
+    getGroup: (id) => api.get(`/church/groups/${id}`),
+    createGroup: (data) => api.post('/church/groups', data),
+    updateGroup: (id, data) => api.put(`/church/groups/${id}`, data),
+    deleteGroup: (id) => api.delete(`/church/groups/${id}`),
+    addGroupMembers: (id, memberIds) => api.post(`/church/groups/${id}/members`, { member_ids: memberIds }),
+    removeGroupMember: (groupId, memberId) => api.delete(`/church/groups/${groupId}/members/${memberId}`),
+    getGroupsStrategicDashboard: () => api.get('/church/groups/strategic-dashboard'),
+    getGroupCategories: () => api.get('/church/group-categories'),
+    createGroupCategory: (data) => api.post('/church/group-categories', data),
+    updateGroupCategory: (id, data) => api.put(`/church/group-categories/${id}`, data),
+    deleteGroupCategory: (id) => api.delete(`/church/group-categories/${id}`),
+
     // Ministries (legacy)
     getMinistries: () => api.get('/church/ministries'),
     createMinistry: (data) => api.post('/church/ministries', data),
