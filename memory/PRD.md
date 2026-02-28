@@ -54,6 +54,7 @@ tenants, users, members, ministries, events, donations, plans, discipleship_trai
 - [x] Enhanced member profile with photo
 - [x] **Members Module Evolution (9 sub-pages) - Feb 28, 2026**
 - [x] **Birthday notifications on Dashboard - Feb 28, 2026**
+- [x] **Birthday auto-greeting system with template - Feb 28, 2026**
 - [x] Event edit/delete functionality
 - [x] Member profile photo display
 
