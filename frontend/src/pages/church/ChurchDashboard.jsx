@@ -75,6 +75,7 @@ export default function ChurchDashboard() {
                     total_members: 190,
                     total_visitors: 25,
                     total_ministries: 8,
+                    total_departments: 8,
                     monthly_revenue: 17000,
                     upcoming_events: [],
                     members_by_status: {
