@@ -583,14 +583,45 @@ async def create_member(member_data: MemberCreate, current_user: dict = Depends(
     return member
 
 @api_router.get("/church/members")
-async def list_members(current_user: dict = Depends(require_church_admin)):
+async def list_members(
+    current_user: dict = Depends(require_church_admin),
+    page: int = 1,
+    per_page: int = 50,
+    search: Optional[str] = None,
+    status: Optional[str] = None,
+    category_id: Optional[str] = None,
+    position_id: Optional[str] = None,
+):
     tenant_id = current_user.get('tenant_id')
     if not tenant_id and current_user.get('role') != UserRole.SUPER_ADMIN:
         raise HTTPException(status_code=400, detail="Tenant ID não encontrado")
     
     query = {"tenant_id": tenant_id} if tenant_id else {}
-    members = await db.members.find(query, {"_id": 0}).to_list(1000)
-    return members
+    
+    if search:
+        query["$or"] = [
+            {"name": {"$regex": search, "$options": "i"}},
+            {"email": {"$regex": search, "$options": "i"}},
+            {"phone": {"$regex": search, "$options": "i"}},
+        ]
+    if status and status != "all":
+        query["status"] = status
+    if category_id:
+        query["category_id"] = category_id
+    if position_id:
+        query["position_id"] = position_id
+    
+    total = await db.members.count_documents(query)
+    skip = (page - 1) * per_page
+    members = await db.members.find(query, {"_id": 0}).skip(skip).limit(per_page).to_list(per_page)
+    
+    return {
+        "items": members,
+        "total": total,
+        "page": page,
+        "per_page": per_page,
+        "pages": (total + per_page - 1) // per_page
+    }
 
 @api_router.get("/church/members/{member_id}")
 async def get_member(member_id: str, current_user: dict = Depends(require_church_admin)):
