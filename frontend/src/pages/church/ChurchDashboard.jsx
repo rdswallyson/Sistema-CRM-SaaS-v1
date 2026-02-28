@@ -57,6 +57,8 @@ export default function ChurchDashboard() {
     const [loading, setLoading] = useState(true);
     const [todayBirthdays, setTodayBirthdays] = useState([]);
     const [monthBirthdays, setMonthBirthdays] = useState([]);
+    const [greetingSentIds, setGreetingSentIds] = useState([]);
+    const [sendingGreetings, setSendingGreetings] = useState(false);
 
     useEffect(() => {
         const fetchDashboard = async () => {
@@ -87,10 +89,14 @@ export default function ChurchDashboard() {
         const fetchBirthdays = async () => {
             try {
                 const currentMonth = new Date().getMonth() + 1;
-                const res = await churchAPI.getMemberBirthdays(currentMonth);
-                const all = res.data || [];
+                const [birthdayRes, statusRes] = await Promise.all([
+                    churchAPI.getMemberBirthdays(currentMonth),
+                    churchAPI.getBirthdayGreetingStatus(),
+                ]);
+                const all = birthdayRes.data || [];
                 setMonthBirthdays(all);
                 setTodayBirthdays(all.filter(m => m.is_today));
+                setGreetingSentIds(statusRes.data?.sent_member_ids || []);
             } catch (e) {
                 // silently ignore
             }
@@ -99,6 +105,29 @@ export default function ChurchDashboard() {
         fetchDashboard();
         fetchBirthdays();
     }, []);
+
+    const handleSendGreetings = async () => {
+        setSendingGreetings(true);
+        try {
+            const res = await churchAPI.sendBirthdayGreetings();
+            const msg = res.data?.message || 'Parabéns enviado!';
+            if (res.data?.sent_count > 0) {
+                toast.success(msg);
+                // Refresh status
+                const statusRes = await churchAPI.getBirthdayGreetingStatus();
+                setGreetingSentIds(statusRes.data?.sent_member_ids || []);
+            } else {
+                toast.info(msg);
+            }
+        } catch (e) {
+            toast.error('Erro ao enviar parabéns');
+        } finally {
+            setSendingGreetings(false);
+        }
+    };
+
+    const allGreetingsSent = todayBirthdays.length > 0 && todayBirthdays.every(m => greetingSentIds.includes(m.id));
+    const pendingGreetings = todayBirthdays.filter(m => !greetingSentIds.includes(m.id));
 
     const statusDistribution = dashboard?.members_by_status
         ? Object.entries(dashboard.members_by_status).map(([key, value], index) => ({
