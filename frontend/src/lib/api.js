@@ -99,7 +99,18 @@ export const churchAPI = {
     getMenuCustomization: () => api.get('/church/menu-customization'),
     updateMenuCustomization: (items) => api.put('/church/menu-customization', items),
     
-    // Ministries
+    // Departments (replaces Ministries)
+    getDepartments: (params) => api.get('/church/departments', { params }),
+    getDepartment: (id) => api.get(`/church/departments/${id}`),
+    createDepartment: (data) => api.post('/church/departments', data),
+    updateDepartment: (id, data) => api.put(`/church/departments/${id}`, data),
+    deleteDepartment: (id) => api.delete(`/church/departments/${id}`),
+    addDepartmentMembers: (id, memberIds) => api.post(`/church/departments/${id}/members`, { member_ids: memberIds }),
+    removeDepartmentMember: (deptId, memberId) => api.delete(`/church/departments/${deptId}/members/${memberId}`),
+    getDepartmentMembers: (id) => api.get(`/church/departments/${id}/members`),
+    migrateMinistriesToDepartments: () => api.post('/migrate/ministries-to-departments'),
+    
+    // Ministries (legacy)
     getMinistries: () => api.get('/church/ministries'),
     createMinistry: (data) => api.post('/church/ministries', data),
     updateMinistry: (id, data) => api.put(`/church/ministries/${id}`, data),
