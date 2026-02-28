@@ -1115,6 +1115,180 @@ async def get_discipleship_stats(current_user: dict = Depends(require_church_adm
         "total_mentorships": total_mentorships
     }
 
+
+# ==================== MEMBER CATEGORIES ====================
+@api_router.post("/church/member-categories")
+async def create_member_category(data: MemberCategoryBase, current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    if not tenant_id:
+        raise HTTPException(status_code=400, detail="Tenant ID não encontrado")
+    cat = MemberCategory(**data.model_dump(), tenant_id=tenant_id)
+    doc = cat.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    await db.member_categories.insert_one(doc)
+    return cat
+
+@api_router.get("/church/member-categories")
+async def list_member_categories(current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    query = {"tenant_id": tenant_id} if tenant_id else {}
+    return await db.member_categories.find(query, {"_id": 0}).to_list(100)
+
+@api_router.put("/church/member-categories/{cat_id}")
+async def update_member_category(cat_id: str, updates: Dict[str, Any], current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    query = {"id": cat_id}
+    if tenant_id:
+        query["tenant_id"] = tenant_id
+    result = await db.member_categories.update_one(query, {"$set": updates})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Categoria não encontrada")
+    return {"message": "Categoria atualizada com sucesso"}
+
+@api_router.delete("/church/member-categories/{cat_id}")
+async def delete_member_category(cat_id: str, current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    query = {"id": cat_id}
+    if tenant_id:
+        query["tenant_id"] = tenant_id
+    result = await db.member_categories.delete_one(query)
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Categoria não encontrada")
+    return {"message": "Categoria removida com sucesso"}
+
+# ==================== MEMBER POSITIONS (CARGOS) ====================
+@api_router.post("/church/member-positions")
+async def create_member_position(data: MemberPositionBase, current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    if not tenant_id:
+        raise HTTPException(status_code=400, detail="Tenant ID não encontrado")
+    pos = MemberPosition(**data.model_dump(), tenant_id=tenant_id)
+    doc = pos.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    await db.member_positions.insert_one(doc)
+    return pos
+
+@api_router.get("/church/member-positions")
+async def list_member_positions(current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    query = {"tenant_id": tenant_id} if tenant_id else {}
+    return await db.member_positions.find(query, {"_id": 0}).sort("hierarchy_level", 1).to_list(100)
+
+@api_router.put("/church/member-positions/{pos_id}")
+async def update_member_position(pos_id: str, updates: Dict[str, Any], current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    query = {"id": pos_id}
+    if tenant_id:
+        query["tenant_id"] = tenant_id
+    result = await db.member_positions.update_one(query, {"$set": updates})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Cargo não encontrado")
+    return {"message": "Cargo atualizado com sucesso"}
+
+@api_router.delete("/church/member-positions/{pos_id}")
+async def delete_member_position(pos_id: str, current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    query = {"id": pos_id}
+    if tenant_id:
+        query["tenant_id"] = tenant_id
+    result = await db.member_positions.delete_one(query)
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Cargo não encontrado")
+    return {"message": "Cargo removido com sucesso"}
+
+# ==================== CUSTOM FIELDS ====================
+@api_router.post("/church/custom-fields")
+async def create_custom_field(data: CustomFieldBase, current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    if not tenant_id:
+        raise HTTPException(status_code=400, detail="Tenant ID não encontrado")
+    field = CustomField(**data.model_dump(), tenant_id=tenant_id)
+    doc = field.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    await db.custom_fields.insert_one(doc)
+    return field
+
+@api_router.get("/church/custom-fields")
+async def list_custom_fields(current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    query = {"tenant_id": tenant_id} if tenant_id else {}
+    return await db.custom_fields.find(query, {"_id": 0}).sort("order", 1).to_list(100)
+
+@api_router.put("/church/custom-fields/{field_id}")
+async def update_custom_field(field_id: str, updates: Dict[str, Any], current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    query = {"id": field_id}
+    if tenant_id:
+        query["tenant_id"] = tenant_id
+    result = await db.custom_fields.update_one(query, {"$set": updates})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Campo não encontrado")
+    return {"message": "Campo atualizado com sucesso"}
+
+@api_router.delete("/church/custom-fields/{field_id}")
+async def delete_custom_field(field_id: str, current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    query = {"id": field_id}
+    if tenant_id:
+        query["tenant_id"] = tenant_id
+    result = await db.custom_fields.delete_one(query)
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Campo não encontrado")
+    return {"message": "Campo removido com sucesso"}
+
+# ==================== MENU PERSONALIZATION ====================
+@api_router.get("/church/menu-customization")
+async def get_menu_customization(current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    if not tenant_id:
+        raise HTTPException(status_code=400, detail="Tenant ID não encontrado")
+    items = await db.menu_personalizacoes.find({"tenant_id": tenant_id}, {"_id": 0}).to_list(100)
+    return items
+
+@api_router.put("/church/menu-customization")
+async def update_menu_customization(items: List[MenuPersonalizationBase], current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    if not tenant_id:
+        raise HTTPException(status_code=400, detail="Tenant ID não encontrado")
+    for item in items:
+        await db.menu_personalizacoes.update_one(
+            {"tenant_id": tenant_id, "menu_key": item.menu_key},
+            {"$set": {"display_name": item.display_name, "updated_at": datetime.now(timezone.utc).isoformat()},
+             "$setOnInsert": {"id": str(uuid.uuid4()), "tenant_id": tenant_id, "menu_key": item.menu_key}},
+            upsert=True
+        )
+    return {"message": "Menus atualizados com sucesso"}
+
+# ==================== MEMBER BIRTHDAYS ====================
+@api_router.get("/church/members/birthdays")
+async def get_member_birthdays(month: Optional[int] = None, current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    if not tenant_id:
+        raise HTTPException(status_code=400, detail="Tenant ID não encontrado")
+    query = {"tenant_id": tenant_id, "birth_date": {"$exists": True, "$ne": None, "$ne": ""}}
+    members = await db.members.find(query, {"_id": 0}).to_list(5000)
+    target_month = month or datetime.now(timezone.utc).month
+    today_str = datetime.now(timezone.utc).strftime("%m-%d")
+    birthdays = []
+    for m in members:
+        bd = m.get('birth_date', '')
+        if not bd:
+            continue
+        try:
+            parts = bd.split('-')
+            if len(parts) == 3:
+                bm = int(parts[1])
+                bd_day = int(parts[2])
+                if bm == target_month:
+                    m['birth_day'] = bd_day
+                    m['is_today'] = bd.endswith(today_str)
+                    birthdays.append(m)
+        except (ValueError, IndexError):
+            continue
+    birthdays.sort(key=lambda x: x.get('birth_day', 0))
+    return birthdays
+
+
 @api_router.post("/seed/discipleship-trails")
 async def seed_discipleship_trails():
     """Create default discipleship trails"""
