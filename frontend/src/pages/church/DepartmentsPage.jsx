@@ -16,7 +16,6 @@ import {
 import {
     DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from '../../components/ui/dropdown-menu';
-import { Checkbox } from '../../components/ui/checkbox';
 import {
     Plus, MoreVertical, Edit, Trash2, Users, Loader2, Search,
     Building2, Archive, CheckCircle, X, UserPlus, Check,
