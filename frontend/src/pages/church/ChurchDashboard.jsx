@@ -55,6 +55,8 @@ const financialData = [
 export default function ChurchDashboard() {
     const [dashboard, setDashboard] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [todayBirthdays, setTodayBirthdays] = useState([]);
+    const [monthBirthdays, setMonthBirthdays] = useState([]);
 
     useEffect(() => {
         const fetchDashboard = async () => {
@@ -63,7 +65,6 @@ export default function ChurchDashboard() {
                 setDashboard(response.data);
             } catch (error) {
                 console.error('Error fetching dashboard:', error);
-                // Set mock data on error
                 setDashboard({
                     total_members: 190,
                     total_visitors: 25,
@@ -82,7 +83,21 @@ export default function ChurchDashboard() {
                 setLoading(false);
             }
         };
+
+        const fetchBirthdays = async () => {
+            try {
+                const currentMonth = new Date().getMonth() + 1;
+                const res = await churchAPI.getMemberBirthdays(currentMonth);
+                const all = res.data || [];
+                setMonthBirthdays(all);
+                setTodayBirthdays(all.filter(m => m.is_today));
+            } catch (e) {
+                // silently ignore
+            }
+        };
+
         fetchDashboard();
+        fetchBirthdays();
     }, []);
 
     const statusDistribution = dashboard?.members_by_status
