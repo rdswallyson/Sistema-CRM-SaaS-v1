@@ -290,6 +290,46 @@ export default function DashboardLayout({ variant = 'church' }) {
                                 )}
                             </div>
 
+                            {/* Teaching expandable section */}
+                            <div>
+                                <button
+                                    data-testid="nav-ensino"
+                                    className={cn(
+                                        "flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium transition-colors w-full text-left",
+                                        location.pathname.startsWith('/dashboard/teaching')
+                                            ? "bg-brand-sky/10 text-brand-sky-active"
+                                            : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                                    )}
+                                    onClick={() => setTeachingExpanded(!teachingExpanded)}
+                                >
+                                    <GraduationCap className="w-5 h-5" />
+                                    <span className="flex-1">{getMenuLabel('teaching_main', 'Ensino')}</span>
+                                    {teachingExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                                </button>
+                                {teachingExpanded && (
+                                    <div className="ml-4 mt-1 space-y-0.5 border-l-2 border-slate-100 pl-3">
+                                        {defaultTeachingSubItems.map((sub) => {
+                                            const Icon = sub.icon;
+                                            const active = sub.exact
+                                                ? location.pathname === sub.path
+                                                : location.pathname.startsWith(sub.path);
+                                            return (
+                                                <Link key={sub.path} to={sub.path} data-testid={`nav-${sub.key}`}
+                                                    className={cn(
+                                                        "flex items-center gap-2 px-2.5 py-2 rounded-md text-sm transition-colors",
+                                                        active ? "bg-brand-sky/10 text-brand-sky-active font-medium" : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"
+                                                    )}
+                                                    onClick={() => setSidebarOpen(false)}
+                                                >
+                                                    <Icon className="w-4 h-4" />
+                                                    <span>{getMenuLabel(sub.key, sub.defaultLabel)}</span>
+                                                </Link>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+
                             {/* Other nav items */}
                             {navItems.filter(i => i.path !== '/dashboard').map((item) => {
                                 const Icon = item.icon;
