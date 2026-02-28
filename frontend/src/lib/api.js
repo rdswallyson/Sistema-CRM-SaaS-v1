@@ -124,6 +124,34 @@ export const churchAPI = {
     updateGroupCategory: (id, data) => api.put(`/church/group-categories/${id}`, data),
     deleteGroupCategory: (id) => api.delete(`/church/group-categories/${id}`),
 
+    // Ensino (Teaching)
+    getEstudos: (params) => api.get('/church/estudos', { params }),
+    getEstudo: (id) => api.get(`/church/estudos/${id}`),
+    createEstudo: (data) => api.post('/church/estudos', data),
+    updateEstudo: (id, data) => api.put(`/church/estudos/${id}`, data),
+    deleteEstudo: (id) => api.delete(`/church/estudos/${id}`),
+
+    getEscolas: (params) => api.get('/church/escolas', { params }),
+    getEscola: (id) => api.get(`/church/escolas/${id}`),
+    createEscola: (data) => api.post('/church/escolas', data),
+    updateEscola: (id, data) => api.put(`/church/escolas/${id}`, data),
+    deleteEscola: (id) => api.delete(`/church/escolas/${id}`),
+
+    getTurmas: (params) => api.get('/church/turmas', { params }),
+    getTurma: (id) => api.get(`/church/turmas/${id}`),
+    createTurma: (data) => api.post('/church/turmas', data),
+    updateTurma: (id, data) => api.put(`/church/turmas/${id}`, data),
+    deleteTurma: (id) => api.delete(`/church/turmas/${id}`),
+    addTurmaMembers: (id, memberIds) => api.post(`/church/turmas/${id}/membros`, { member_ids: memberIds }),
+    removeTurmaMember: (turmaId, memberId) => api.delete(`/church/turmas/${turmaId}/membros/${memberId}`),
+
+    getProgressoMembro: (memberId) => api.get(`/church/progresso-ensino/membro/${memberId}`),
+    createProgresso: (data) => api.post('/church/progresso-ensino', data),
+    updateProgresso: (id, data) => api.put(`/church/progresso-ensino/${id}`, data),
+    deleteProgresso: (id) => api.delete(`/church/progresso-ensino/${id}`),
+
+    getPainelAcademico: () => api.get('/church/ensino/painel-academico'),
+
     // Ministries (legacy)
     getMinistries: () => api.get('/church/ministries'),
     createMinistry: (data) => api.post('/church/ministries', data),
