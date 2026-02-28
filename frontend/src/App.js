@@ -23,6 +23,18 @@ import GroupReports from "./pages/church/groups/GroupReports";
 import GroupExport from "./pages/church/groups/GroupExport";
 import GroupStrategicPanel from "./pages/church/groups/GroupStrategicPanel";
 import GroupDetailPage from "./pages/church/groups/GroupDetailPage";
+
+// Teaching Pages
+import EstudosPage from "./pages/church/teaching/EstudosPage";
+import AddEstudo from "./pages/church/teaching/AddEstudo";
+import EscolasPage from "./pages/church/teaching/EscolasPage";
+import TurmasPage from "./pages/church/teaching/TurmasPage";
+import AddTurma from "./pages/church/teaching/AddTurma";
+import TurmaDetailPage from "./pages/church/teaching/TurmaDetailPage";
+import AcompanhamentoPage from "./pages/church/teaching/AcompanhamentoPage";
+import ExportarEnsinoPage from "./pages/church/teaching/ExportarEnsinoPage";
+import PainelAcademico from "./pages/church/teaching/PainelAcademico";
+
 import EventsPage from "./pages/church/EventsPage";
 import FinancialPage from "./pages/church/FinancialPage";
 import CommunicationPage from "./pages/church/CommunicationPage";
@@ -133,6 +145,20 @@ const AppRoutes = () => {
                 <Route path="groups/export" element={<GroupExport />} />
                 <Route path="groups/strategic" element={<GroupStrategicPanel />} />
                 <Route path="groups/:groupId" element={<GroupDetailPage />} />
+                
+                {/* Teaching sub-routes */}
+                <Route path="teaching/studies" element={<EstudosPage />} />
+                <Route path="teaching/studies/add" element={<AddEstudo />} />
+                <Route path="teaching/studies/edit/:estudoId" element={<AddEstudo />} />
+                <Route path="teaching/schools" element={<EscolasPage />} />
+                <Route path="teaching/classes" element={<TurmasPage />} />
+                <Route path="teaching/classes/add" element={<AddTurma />} />
+                <Route path="teaching/classes/edit/:turmaId" element={<AddTurma />} />
+                <Route path="teaching/classes/:turmaId" element={<TurmaDetailPage />} />
+                <Route path="teaching/tracking" element={<AcompanhamentoPage />} />
+                <Route path="teaching/export" element={<ExportarEnsinoPage />} />
+                <Route path="teaching/dashboard" element={<PainelAcademico />} />
+                
                 <Route path="events" element={<EventsPage />} />
                 <Route path="financial" element={<FinancialPage />} />
                 <Route path="discipleship" element={<DiscipleshipPage />} />
