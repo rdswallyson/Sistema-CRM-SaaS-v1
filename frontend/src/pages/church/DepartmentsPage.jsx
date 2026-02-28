@@ -344,7 +344,9 @@ export default function DepartmentsPage() {
                                 {filteredMembers.length > 0 ? filteredMembers.slice(0, 50).map(m => (
                                     <div key={m.id} className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-colors ${selectedMemberIds.includes(m.id) ? 'bg-brand-sky/10' : 'hover:bg-slate-50'}`}
                                         onClick={() => toggleMember(m.id)} data-testid={`select-member-${m.id}`}>
-                                        <Checkbox checked={selectedMemberIds.includes(m.id)} onClick={(e) => e.stopPropagation()} onCheckedChange={() => {}} />
+                                        <div className={`h-4 w-4 shrink-0 rounded-sm border shadow ${selectedMemberIds.includes(m.id) ? 'bg-slate-900 border-slate-900' : 'border-slate-300 bg-white'} flex items-center justify-center`}>
+                                            {selectedMemberIds.includes(m.id) && <Check className="h-3 w-3 text-white" />}
+                                        </div>
                                         <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center overflow-hidden shrink-0">
                                             {m.photo_url ? <img src={m.photo_url} alt="" className="w-full h-full object-cover" /> :
                                                 <span className="text-xs font-bold text-slate-400">{m.name?.[0]}</span>}
