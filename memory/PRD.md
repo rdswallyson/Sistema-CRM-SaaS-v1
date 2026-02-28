@@ -53,6 +53,7 @@ tenants, users, members, ministries, events, donations, plans, discipleship_trai
 - [x] Branding "Firmes" with sky blue theme
 - [x] Enhanced member profile with photo
 - [x] **Members Module Evolution (9 sub-pages) - Feb 28, 2026**
+- [x] **Birthday notifications on Dashboard - Feb 28, 2026**
 - [x] Event edit/delete functionality
 - [x] Member profile photo display
 
