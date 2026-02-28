@@ -165,6 +165,31 @@ class Ministry(MinistryBase):
     member_count: int = 0
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
+# ==================== DEPARTMENTS (replaces Ministries) ====================
+class DepartmentBase(BaseModel):
+    name: str
+    description: Optional[str] = None
+    icon: str = "building"
+    responsavel_id: Optional[str] = None
+    status: str = "active"  # active, archived
+    goals: Optional[str] = None
+    meeting_schedule: Optional[str] = None
+
+class Department(DepartmentBase):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    tenant_id: str
+    member_count: int = 0
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class DepartmentMemberLink(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    department_id: str
+    member_id: str
+    tenant_id: str
+    joined_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
 class EventBase(BaseModel):
     title: str
     description: Optional[str] = None
