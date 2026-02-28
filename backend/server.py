@@ -1525,6 +1525,127 @@ async def stripe_webhook(request: Request):
         logger.error(f"Webhook error: {e}")
         raise HTTPException(status_code=400, detail=str(e))
 
+# ==================== BIRTHDAY GREETINGS ====================
+@api_router.get("/church/birthday-greetings/template")
+async def get_birthday_template(current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    if not tenant_id:
+        raise HTTPException(status_code=400, detail="Tenant ID não encontrado")
+    template = await db.birthday_templates.find_one({"tenant_id": tenant_id}, {"_id": 0})
+    if not template:
+        return {
+            "tenant_id": tenant_id,
+            "message_template": "Feliz aniversário, {nome}! A igreja {igreja} deseja a você um dia cheio de bençãos e alegria. Que Deus continue abençoando sua vida!",
+            "channel": "email",
+            "subject": "Feliz Aniversário! - Igreja Firmes",
+            "auto_send": False,
+        }
+    return template
+
+@api_router.put("/church/birthday-greetings/template")
+async def update_birthday_template(data: Dict[str, Any], current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    if not tenant_id:
+        raise HTTPException(status_code=400, detail="Tenant ID não encontrado")
+    await db.birthday_templates.update_one(
+        {"tenant_id": tenant_id},
+        {"$set": {
+            "message_template": data.get("message_template", ""),
+            "channel": data.get("channel", "email"),
+            "subject": data.get("subject", ""),
+            "auto_send": data.get("auto_send", False),
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+        },
+        "$setOnInsert": {"id": str(uuid.uuid4()), "tenant_id": tenant_id}},
+        upsert=True
+    )
+    return {"message": "Template atualizado com sucesso"}
+
+@api_router.get("/church/birthday-greetings/status")
+async def get_birthday_greeting_status(current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    if not tenant_id:
+        raise HTTPException(status_code=400, detail="Tenant ID não encontrado")
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    sent = await db.birthday_greetings_log.find(
+        {"tenant_id": tenant_id, "sent_date": today}, {"_id": 0}
+    ).to_list(500)
+    sent_member_ids = [s["member_id"] for s in sent]
+    return {"sent_date": today, "sent_member_ids": sent_member_ids}
+
+@api_router.post("/church/birthday-greetings/send")
+async def send_birthday_greetings(current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    if not tenant_id:
+        raise HTTPException(status_code=400, detail="Tenant ID não encontrado")
+
+    # Get template
+    template = await db.birthday_templates.find_one({"tenant_id": tenant_id}, {"_id": 0})
+    msg_template = template.get("message_template", "Feliz aniversário, {nome}!") if template else "Feliz aniversário, {nome}! A igreja deseja a você um dia abençoado!"
+    channel = template.get("channel", "email") if template else "email"
+    subject = template.get("subject", "Feliz Aniversário!") if template else "Feliz Aniversário!"
+
+    # Get tenant name
+    tenant = await db.tenants.find_one({"id": tenant_id}, {"_id": 0, "name": 1})
+    church_name = tenant.get("name", "Firmes") if tenant else "Firmes"
+
+    # Get today's birthday members
+    today = datetime.now(timezone.utc)
+    today_str = today.strftime("%Y-%m-%d")
+    today_md = today.strftime("%m-%d")
+    query = {"tenant_id": tenant_id, "birth_date": {"$exists": True, "$ne": None, "$ne": ""}}
+    members = await db.members.find(query, {"_id": 0}).to_list(5000)
+
+    birthday_members = []
+    for m in members:
+        bd = m.get("birth_date", "")
+        if bd and bd.endswith(today_md):
+            birthday_members.append(m)
+
+    if not birthday_members:
+        return {"message": "Nenhum aniversariante hoje", "sent_count": 0}
+
+    # Check already sent
+    already_sent = await db.birthday_greetings_log.find(
+        {"tenant_id": tenant_id, "sent_date": today_str}, {"_id": 0, "member_id": 1}
+    ).to_list(500)
+    already_sent_ids = {s["member_id"] for s in already_sent}
+
+    sent_count = 0
+    for member in birthday_members:
+        if member["id"] in already_sent_ids:
+            continue
+
+        personalized_msg = msg_template.replace("{nome}", member.get("name", "")).replace("{igreja}", church_name)
+
+        # Log to communications (same as existing system)
+        comm_log = CommunicationLog(
+            tenant_id=tenant_id,
+            channel=channel,
+            recipient_ids=[member["id"]],
+            subject=subject,
+            message=personalized_msg,
+            status="sent"
+        )
+        doc = comm_log.model_dump()
+        doc['sent_at'] = doc['sent_at'].isoformat()
+        doc['is_birthday_greeting'] = True
+        await db.communications.insert_one(doc)
+
+        # Log to birthday greetings
+        await db.birthday_greetings_log.insert_one({
+            "id": str(uuid.uuid4()),
+            "tenant_id": tenant_id,
+            "member_id": member["id"],
+            "member_name": member.get("name", ""),
+            "sent_date": today_str,
+            "channel": channel,
+            "sent_at": datetime.now(timezone.utc).isoformat(),
+        })
+        sent_count += 1
+
+    return {"message": f"Parabéns enviado para {sent_count} aniversariante(s)!", "sent_count": sent_count}
+
 # ==================== SEED DATA ====================
 @api_router.post("/seed/super-admin")
 async def seed_super_admin():
