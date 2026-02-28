@@ -206,6 +206,72 @@ export default function ChurchDashboard() {
                 </Card>
             </div>
 
+            {/* Birthday Notification Banner */}
+            {todayBirthdays.length > 0 && (
+                <Card className="dashboard-card border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50" data-testid="birthday-alert">
+                    <CardContent className="py-4">
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
+                                <PartyPopper className="w-6 h-6 text-amber-600" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <p className="font-heading font-semibold text-amber-900">
+                                    {todayBirthdays.length === 1
+                                        ? `${todayBirthdays[0].name} faz aniversário hoje!`
+                                        : `${todayBirthdays.length} membros fazem aniversário hoje!`
+                                    }
+                                </p>
+                                <div className="flex flex-wrap gap-2 mt-1">
+                                    {todayBirthdays.map(m => (
+                                        <div key={m.id} className="flex items-center gap-1.5">
+                                            <div className="w-6 h-6 rounded-full bg-amber-200 flex items-center justify-center overflow-hidden">
+                                                {m.photo_url ? (
+                                                    <img src={m.photo_url} alt={m.name} className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <Cake className="w-3 h-3 text-amber-600" />
+                                                )}
+                                            </div>
+                                            <span className="text-sm text-amber-800">{m.name}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                            <Link to="/dashboard/members/birthdays">
+                                <Button variant="outline" size="sm" className="border-amber-300 text-amber-700 hover:bg-amber-100" data-testid="view-birthdays-btn">
+                                    Ver todos <ChevronRight className="w-4 h-4 ml-1" />
+                                </Button>
+                            </Link>
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
+
+            {/* Month Birthdays Summary (when no today birthdays) */}
+            {todayBirthdays.length === 0 && monthBirthdays.length > 0 && (
+                <Card className="dashboard-card" data-testid="birthday-month-summary">
+                    <CardContent className="py-4">
+                        <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center shrink-0">
+                                <Cake className="w-5 h-5 text-slate-500" />
+                            </div>
+                            <div className="flex-1">
+                                <p className="text-sm text-slate-600">
+                                    <span className="font-medium text-slate-900">{monthBirthdays.length} aniversariantes</span> este mês
+                                    {monthBirthdays.length > 0 && (
+                                        <span> — Próximo: <strong>{monthBirthdays[0].name}</strong> (dia {monthBirthdays[0].birth_day})</span>
+                                    )}
+                                </p>
+                            </div>
+                            <Link to="/dashboard/members/birthdays">
+                                <Button variant="ghost" size="sm" className="text-slate-500" data-testid="view-month-birthdays-btn">
+                                    Ver <ChevronRight className="w-4 h-4 ml-1" />
+                                </Button>
+                            </Link>
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
+
             {/* Charts Row */}
             <div className="grid lg:grid-cols-2 gap-6">
                 {/* Growth Chart */}
