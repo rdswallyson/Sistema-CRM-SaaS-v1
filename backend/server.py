@@ -758,6 +758,187 @@ async def delete_ministry(ministry_id: str, current_user: dict = Depends(require
         raise HTTPException(status_code=404, detail="Ministério não encontrado")
     return {"message": "Ministério removido com sucesso"}
 
+# ==================== CHURCH ADMIN - DEPARTMENTS ====================
+@api_router.post("/church/departments")
+async def create_department(data: DepartmentBase, current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    if not tenant_id:
+        raise HTTPException(status_code=400, detail="Tenant ID não encontrado")
+    dept = Department(**data.model_dump(), tenant_id=tenant_id)
+    doc = dept.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    await db.departments.insert_one(doc)
+    return dept
+
+@api_router.get("/church/departments")
+async def list_departments(status: Optional[str] = None, current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    query = {"tenant_id": tenant_id} if tenant_id else {}
+    if status and status != "all":
+        query["status"] = status
+    departments = await db.departments.find(query, {"_id": 0}).to_list(200)
+    # Enrich with member photos
+    for dept in departments:
+        links = await db.department_members.find(
+            {"department_id": dept["id"], "tenant_id": tenant_id}, {"_id": 0, "member_id": 1}
+        ).to_list(100)
+        member_ids = [l["member_id"] for l in links]
+        dept["member_count"] = len(member_ids)
+        if member_ids:
+            members_preview = await db.members.find(
+                {"id": {"$in": member_ids[:5]}}, {"_id": 0, "id": 1, "name": 1, "photo_url": 1}
+            ).to_list(5)
+            dept["members_preview"] = members_preview
+        else:
+            dept["members_preview"] = []
+        # Get responsavel name
+        if dept.get("responsavel_id"):
+            resp = await db.members.find_one({"id": dept["responsavel_id"]}, {"_id": 0, "name": 1, "photo_url": 1})
+            dept["responsavel_name"] = resp.get("name") if resp else None
+    return departments
+
+@api_router.get("/church/departments/{dept_id}")
+async def get_department(dept_id: str, current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    query = {"id": dept_id}
+    if tenant_id:
+        query["tenant_id"] = tenant_id
+    dept = await db.departments.find_one(query, {"_id": 0})
+    if not dept:
+        raise HTTPException(status_code=404, detail="Departamento não encontrado")
+    # Get all members
+    links = await db.department_members.find(
+        {"department_id": dept_id, "tenant_id": tenant_id}, {"_id": 0}
+    ).to_list(1000)
+    member_ids = [l["member_id"] for l in links]
+    joined_map = {l["member_id"]: l.get("joined_at", "") for l in links}
+    members = []
+    if member_ids:
+        member_docs = await db.members.find(
+            {"id": {"$in": member_ids}}, {"_id": 0}
+        ).to_list(1000)
+        # Enrich with position name
+        positions = await db.member_positions.find({"tenant_id": tenant_id}, {"_id": 0}).to_list(100)
+        pos_map = {p["id"]: p["name"] for p in positions}
+        for m in member_docs:
+            m["joined_at"] = joined_map.get(m["id"], "")
+            m["position_name"] = pos_map.get(m.get("position_id", ""), "")
+            members.append(m)
+    dept["members"] = members
+    dept["member_count"] = len(members)
+    # Responsavel info
+    if dept.get("responsavel_id"):
+        resp = await db.members.find_one({"id": dept["responsavel_id"]}, {"_id": 0, "name": 1, "photo_url": 1})
+        dept["responsavel_name"] = resp.get("name") if resp else None
+    return dept
+
+@api_router.put("/church/departments/{dept_id}")
+async def update_department(dept_id: str, updates: Dict[str, Any], current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    query = {"id": dept_id}
+    if tenant_id:
+        query["tenant_id"] = tenant_id
+    updates["updated_at"] = datetime.now(timezone.utc).isoformat()
+    result = await db.departments.update_one(query, {"$set": updates})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Departamento não encontrado")
+    return {"message": "Departamento atualizado com sucesso"}
+
+@api_router.delete("/church/departments/{dept_id}")
+async def delete_department(dept_id: str, current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    query = {"id": dept_id}
+    if tenant_id:
+        query["tenant_id"] = tenant_id
+    result = await db.departments.delete_one(query)
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Departamento não encontrado")
+    # Remove all member links
+    await db.department_members.delete_many({"department_id": dept_id, "tenant_id": tenant_id})
+    return {"message": "Departamento removido com sucesso"}
+
+# ==================== DEPARTMENT MEMBERS ====================
+@api_router.post("/church/departments/{dept_id}/members")
+async def add_members_to_department(dept_id: str, data: Dict[str, Any], current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    if not tenant_id:
+        raise HTTPException(status_code=400, detail="Tenant ID não encontrado")
+    member_ids = data.get("member_ids", [])
+    if not member_ids:
+        raise HTTPException(status_code=400, detail="Nenhum membro selecionado")
+    # Check department exists
+    dept = await db.departments.find_one({"id": dept_id, "tenant_id": tenant_id})
+    if not dept:
+        raise HTTPException(status_code=404, detail="Departamento não encontrado")
+    added = 0
+    for mid in member_ids:
+        # Avoid duplicates
+        exists = await db.department_members.find_one({"department_id": dept_id, "member_id": mid, "tenant_id": tenant_id})
+        if exists:
+            continue
+        link = DepartmentMemberLink(department_id=dept_id, member_id=mid, tenant_id=tenant_id)
+        doc = link.model_dump()
+        doc["joined_at"] = doc["joined_at"].isoformat()
+        await db.department_members.insert_one(doc)
+        added += 1
+    # Update member count
+    count = await db.department_members.count_documents({"department_id": dept_id, "tenant_id": tenant_id})
+    await db.departments.update_one({"id": dept_id}, {"$set": {"member_count": count}})
+    return {"message": f"{added} membro(s) adicionado(s) ao departamento", "added": added}
+
+@api_router.delete("/church/departments/{dept_id}/members/{member_id}")
+async def remove_member_from_department(dept_id: str, member_id: str, current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    result = await db.department_members.delete_one({"department_id": dept_id, "member_id": member_id, "tenant_id": tenant_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Vínculo não encontrado")
+    count = await db.department_members.count_documents({"department_id": dept_id, "tenant_id": tenant_id})
+    await db.departments.update_one({"id": dept_id}, {"$set": {"member_count": count}})
+    return {"message": "Membro removido do departamento"}
+
+@api_router.get("/church/departments/{dept_id}/members")
+async def list_department_members(dept_id: str, current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    links = await db.department_members.find({"department_id": dept_id, "tenant_id": tenant_id}, {"_id": 0}).to_list(1000)
+    member_ids = [l["member_id"] for l in links]
+    joined_map = {l["member_id"]: l.get("joined_at", "") for l in links}
+    if not member_ids:
+        return []
+    members = await db.members.find({"id": {"$in": member_ids}}, {"_id": 0}).to_list(1000)
+    positions = await db.member_positions.find({"tenant_id": tenant_id}, {"_id": 0}).to_list(100)
+    pos_map = {p["id"]: p["name"] for p in positions}
+    for m in members:
+        m["joined_at"] = joined_map.get(m["id"], "")
+        m["position_name"] = pos_map.get(m.get("position_id", ""), "")
+    return members
+
+# ==================== MIGRATION: Ministries -> Departments ====================
+@api_router.post("/migrate/ministries-to-departments")
+async def migrate_ministries_to_departments():
+    """Migrate existing ministries data to departments collection"""
+    ministries = await db.ministries.find({}, {"_id": 0}).to_list(1000)
+    migrated = 0
+    for m in ministries:
+        exists = await db.departments.find_one({"id": m["id"]})
+        if exists:
+            continue
+        dept_doc = {
+            "id": m["id"],
+            "tenant_id": m.get("tenant_id", ""),
+            "name": m.get("name", ""),
+            "description": m.get("description", ""),
+            "icon": "building",
+            "responsavel_id": m.get("leader_id"),
+            "status": "active",
+            "goals": m.get("goals"),
+            "meeting_schedule": m.get("meeting_schedule"),
+            "member_count": m.get("member_count", 0),
+            "created_at": m.get("created_at", datetime.now(timezone.utc).isoformat()),
+        }
+        await db.departments.insert_one(dept_doc)
+        migrated += 1
+    return {"message": f"{migrated} ministério(s) migrado(s) para departamentos", "migrated": migrated}
+
 # ==================== CHURCH ADMIN - EVENTS ====================
 @api_router.post("/church/events", response_model=Event)
 async def create_event(event_data: EventCreate, current_user: dict = Depends(require_church_admin)):
