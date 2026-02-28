@@ -1084,6 +1084,7 @@ async def get_church_dashboard(current_user: dict = Depends(require_church_admin
     total_members = await db.members.count_documents({"tenant_id": tenant_id})
     total_visitors = await db.members.count_documents({"tenant_id": tenant_id, "status": "visitor"})
     total_ministries = await db.ministries.count_documents({"tenant_id": tenant_id})
+    total_departments = await db.departments.count_documents({"tenant_id": tenant_id, "status": "active"})
     
     # Get financial summary
     pipeline = [
