@@ -3,9 +3,11 @@ import { churchAPI } from '../../lib/api';
 import { formatDateTime } from '../../lib/utils';
 import { Button } from '../../components/ui/button';
 import { Label } from '../../components/ui/label';
+import { Input } from '../../components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../components/ui/card';
 import { Badge } from '../../components/ui/badge';
 import { Checkbox } from '../../components/ui/checkbox';
+import { Switch } from '../../components/ui/switch';
 import {
     Select,
     SelectContent,
@@ -23,6 +25,8 @@ import {
     AlertCircle,
     Loader2,
     Users,
+    Cake,
+    Save,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
