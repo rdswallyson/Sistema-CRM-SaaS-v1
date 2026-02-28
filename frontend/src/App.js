@@ -123,6 +123,16 @@ const AppRoutes = () => {
                 {/* Other routes */}
                 <Route path="departments" element={<DepartmentsPage />} />
                 <Route path="departments/:deptId" element={<DepartmentDetailPage />} />
+                
+                {/* Groups sub-routes */}
+                <Route path="groups" element={<GroupsList />} />
+                <Route path="groups/add" element={<AddGroup />} />
+                <Route path="groups/edit/:groupId" element={<AddGroup />} />
+                <Route path="groups/categories" element={<GroupCategories />} />
+                <Route path="groups/reports" element={<GroupReports />} />
+                <Route path="groups/export" element={<GroupExport />} />
+                <Route path="groups/strategic" element={<GroupStrategicPanel />} />
+                <Route path="groups/:groupId" element={<GroupDetailPage />} />
                 <Route path="events" element={<EventsPage />} />
                 <Route path="financial" element={<FinancialPage />} />
                 <Route path="discipleship" element={<DiscipleshipPage />} />
