@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { churchAPI } from '../../lib/api';
-import { formatCurrency, memberStatusLabels, memberStatusColors } from '../../lib/utils';
+import { formatCurrency, formatDate, memberStatusLabels, memberStatusColors } from '../../lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Badge } from '../../components/ui/badge';
+import { Button } from '../../components/ui/button';
 import {
     Users,
     Calendar,
@@ -10,6 +12,9 @@ import {
     TrendingUp,
     AlertTriangle,
     Church,
+    Cake,
+    PartyPopper,
+    ChevronRight,
 } from 'lucide-react';
 import {
     AreaChart,
