@@ -60,6 +60,15 @@ const defaultMemberSubItems = [
     { path: '/dashboard/members/menu-edit', key: 'members_menu_edit', defaultLabel: 'Editar nomes do menu', icon: Pencil },
 ];
 
+const defaultGroupSubItems = [
+    { path: '/dashboard/groups', key: 'groups_list', defaultLabel: 'Ver todos', icon: List, exact: true },
+    { path: '/dashboard/groups/add', key: 'groups_add', defaultLabel: 'Adicionar grupo', icon: UserPlus },
+    { path: '/dashboard/groups/categories', key: 'groups_categories', defaultLabel: 'Categorias de grupos', icon: FolderTree },
+    { path: '/dashboard/groups/reports', key: 'groups_reports', defaultLabel: 'Relatórios', icon: FileText },
+    { path: '/dashboard/groups/export', key: 'groups_export', defaultLabel: 'Exportar', icon: FileText },
+    { path: '/dashboard/groups/strategic', key: 'groups_strategic', defaultLabel: 'Painel Estratégico', icon: BarChart3 },
+];
+
 const churchNavBase = [
     { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, exact: true },
     { path: '/dashboard/departments', label: 'Departamentos', icon: Church },
