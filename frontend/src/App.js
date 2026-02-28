@@ -11,7 +11,6 @@ import ChurchesManagement from "./pages/admin/ChurchesManagement";
 import PlansManagement from "./pages/admin/PlansManagement";
 import PromotionsManagement from "./pages/admin/PromotionsManagement";
 import ChurchDashboard from "./pages/church/ChurchDashboard";
-import MembersPage from "./pages/church/MembersPage";
 import MemberProfilePage from "./pages/church/MemberProfilePage";
 import MinistriesPage from "./pages/church/MinistriesPage";
 import EventsPage from "./pages/church/EventsPage";
@@ -20,6 +19,17 @@ import CommunicationPage from "./pages/church/CommunicationPage";
 import DiscipleshipPage from "./pages/church/DiscipleshipPage";
 import SettingsPage from "./pages/church/SettingsPage";
 import PaymentSuccess from "./pages/PaymentSuccess";
+
+// Members Sub-Pages
+import MembersList from "./pages/church/members/MembersList";
+import AddMember from "./pages/church/members/AddMember";
+import CustomFieldsPage from "./pages/church/members/CustomFieldsPage";
+import CategoriesPage from "./pages/church/members/CategoriesPage";
+import PositionsPage from "./pages/church/members/PositionsPage";
+import MemberCardPage from "./pages/church/members/MemberCardPage";
+import BirthdaysPage from "./pages/church/members/BirthdaysPage";
+import ReportsPage from "./pages/church/members/ReportsPage";
+import MenuCustomizationPage from "./pages/church/members/MenuCustomizationPage";
 
 // Layout
 import DashboardLayout from "./components/layout/DashboardLayout";
@@ -86,8 +96,21 @@ const AppRoutes = () => {
                 }
             >
                 <Route index element={<ChurchDashboard />} />
-                <Route path="members" element={<MembersPage />} />
+                
+                {/* Members sub-routes */}
+                <Route path="members" element={<MembersList />} />
+                <Route path="members/add" element={<AddMember />} />
+                <Route path="members/edit/:memberId" element={<AddMember />} />
+                <Route path="members/custom-fields" element={<CustomFieldsPage />} />
+                <Route path="members/categories" element={<CategoriesPage />} />
+                <Route path="members/positions" element={<PositionsPage />} />
+                <Route path="members/card" element={<MemberCardPage />} />
+                <Route path="members/birthdays" element={<BirthdaysPage />} />
+                <Route path="members/reports" element={<ReportsPage />} />
+                <Route path="members/menu-edit" element={<MenuCustomizationPage />} />
                 <Route path="members/:memberId" element={<MemberProfilePage />} />
+                
+                {/* Other routes */}
                 <Route path="ministries" element={<MinistriesPage />} />
                 <Route path="events" element={<EventsPage />} />
                 <Route path="financial" element={<FinancialPage />} />
