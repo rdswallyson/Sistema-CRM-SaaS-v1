@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../lib/auth';
+import { churchAPI } from '../../lib/api';
 import { cn } from '../../lib/utils';
 import { Button } from '../ui/button';
 import { Avatar, AvatarFallback } from '../ui/avatar';
@@ -27,7 +28,17 @@ import {
     Tag,
     BarChart3,
     ChevronRight,
+    ChevronDown,
     BookOpen,
+    List,
+    UserPlus,
+    Layers,
+    FolderTree,
+    Briefcase,
+    IdCard,
+    Cake,
+    FileText,
+    Pencil,
 } from 'lucide-react';
 
 const adminNavItems = [
@@ -37,9 +48,20 @@ const adminNavItems = [
     { path: '/admin/promotions', label: 'Promoções', icon: Tag },
 ];
 
-const churchNavItems = [
+const defaultMemberSubItems = [
+    { path: '/dashboard/members', key: 'members_list', defaultLabel: 'Ver todos', icon: List, exact: true },
+    { path: '/dashboard/members/add', key: 'members_add', defaultLabel: 'Adicionar membro', icon: UserPlus },
+    { path: '/dashboard/members/custom-fields', key: 'members_custom_fields', defaultLabel: 'Campos adicionais', icon: Layers },
+    { path: '/dashboard/members/categories', key: 'members_categories', defaultLabel: 'Categorias', icon: FolderTree },
+    { path: '/dashboard/members/positions', key: 'members_positions', defaultLabel: 'Cargos', icon: Briefcase },
+    { path: '/dashboard/members/card', key: 'members_card', defaultLabel: 'Cartão do membro', icon: IdCard },
+    { path: '/dashboard/members/birthdays', key: 'members_birthdays', defaultLabel: 'Aniversariantes', icon: Cake },
+    { path: '/dashboard/members/reports', key: 'members_reports', defaultLabel: 'Relatórios', icon: FileText },
+    { path: '/dashboard/members/menu-edit', key: 'members_menu_edit', defaultLabel: 'Editar nomes do menu', icon: Pencil },
+];
+
+const churchNavBase = [
     { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, exact: true },
-    { path: '/dashboard/members', label: 'Membros', icon: Users },
     { path: '/dashboard/ministries', label: 'Ministérios', icon: Church },
     { path: '/dashboard/events', label: 'Eventos', icon: Calendar },
     { path: '/dashboard/financial', label: 'Financeiro', icon: DollarSign },
@@ -50,11 +72,41 @@ const churchNavItems = [
 
 export default function DashboardLayout({ variant = 'church' }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [membersExpanded, setMembersExpanded] = useState(false);
+    const [menuLabels, setMenuLabels] = useState({});
     const { user, logout } = useAuth();
     const location = useLocation();
     const navigate = useNavigate();
 
-    const navItems = variant === 'admin' ? adminNavItems : churchNavItems;
+    const navItems = variant === 'admin' ? adminNavItems : churchNavBase;
+
+    useEffect(() => {
+        if (variant === 'church') {
+            fetchMenuLabels();
+        }
+    }, [variant]);
+
+    useEffect(() => {
+        if (location.pathname.startsWith('/dashboard/members')) {
+            setMembersExpanded(true);
+        }
+    }, [location.pathname]);
+
+    const fetchMenuLabels = async () => {
+        try {
+            const res = await churchAPI.getMenuCustomization();
+            const labels = {};
+            (res.data || []).forEach(item => {
+                labels[item.menu_key] = item.display_name;
+            });
+            setMenuLabels(labels);
+        } catch (e) {
+            // silently ignore - use defaults
+        }
+    };
+
+    const getMenuLabel = (key, defaultLabel) => menuLabels[key] || defaultLabel;
+    const membersMainLabel = getMenuLabel('members_main', 'Membros');
 
     const handleLogout = () => {
         logout();
@@ -62,11 +114,11 @@ export default function DashboardLayout({ variant = 'church' }) {
     };
 
     const isActive = (item) => {
-        if (item.exact) {
-            return location.pathname === item.path;
-        }
+        if (item.exact) return location.pathname === item.path;
         return location.pathname.startsWith(item.path);
     };
+
+    const isMembersActive = location.pathname.startsWith('/dashboard/members');
 
     const getInitials = (name) => {
         if (!name) return 'U';
@@ -75,7 +127,6 @@ export default function DashboardLayout({ variant = 'church' }) {
 
     return (
         <div className="min-h-screen bg-brand-surface">
-            {/* Mobile sidebar backdrop */}
             {sidebarOpen && (
                 <div
                     className="fixed inset-0 z-40 bg-black/50 lg:hidden"
@@ -83,32 +134,119 @@ export default function DashboardLayout({ variant = 'church' }) {
                 />
             )}
 
-            {/* Sidebar */}
             <aside
                 className={cn(
-                    "fixed top-0 left-0 z-50 h-full w-64 bg-white border-r border-slate-200 transform transition-transform duration-300 lg:translate-x-0",
+                    "fixed top-0 left-0 z-50 h-full w-64 bg-white border-r border-slate-200 transform transition-transform duration-300 lg:translate-x-0 flex flex-col",
                     sidebarOpen ? "translate-x-0" : "-translate-x-full"
                 )}
             >
-                {/* Logo */}
-                <div className="h-16 flex items-center justify-between px-4 border-b border-slate-100">
+                <div className="h-16 flex items-center justify-between px-4 border-b border-slate-100 shrink-0">
                     <Link to="/" className="flex items-center gap-2">
                         <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-sky to-brand-blue flex items-center justify-center">
                             <Church className="w-5 h-5 text-white" />
                         </div>
                         <span className="font-heading font-bold text-slate-900">Firmes</span>
                     </Link>
-                    <button
-                        onClick={() => setSidebarOpen(false)}
-                        className="lg:hidden p-2 rounded-lg hover:bg-slate-100"
-                    >
+                    <button onClick={() => setSidebarOpen(false)} className="lg:hidden p-2 rounded-lg hover:bg-slate-100">
                         <X className="w-5 h-5" />
                     </button>
                 </div>
 
-                {/* Navigation */}
-                <nav className="p-4 space-y-1">
-                    {navItems.map((item) => {
+                <nav className="flex-1 overflow-y-auto p-4 space-y-1">
+                    {variant === 'church' && (
+                        <>
+                            {/* Dashboard link */}
+                            <Link
+                                to="/dashboard"
+                                data-testid="nav-dashboard"
+                                className={cn(
+                                    "flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium transition-colors",
+                                    location.pathname === '/dashboard'
+                                        ? "bg-brand-sky/10 text-brand-sky-active"
+                                        : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                                )}
+                                onClick={() => setSidebarOpen(false)}
+                            >
+                                <LayoutDashboard className="w-5 h-5" />
+                                <span>Dashboard</span>
+                            </Link>
+
+                            {/* Members expandable section */}
+                            <div>
+                                <button
+                                    data-testid="nav-membros"
+                                    className={cn(
+                                        "flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium transition-colors w-full text-left",
+                                        isMembersActive
+                                            ? "bg-brand-sky/10 text-brand-sky-active"
+                                            : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                                    )}
+                                    onClick={() => setMembersExpanded(!membersExpanded)}
+                                >
+                                    <Users className="w-5 h-5" />
+                                    <span className="flex-1">{membersMainLabel}</span>
+                                    {membersExpanded ? (
+                                        <ChevronDown className="w-4 h-4" />
+                                    ) : (
+                                        <ChevronRight className="w-4 h-4" />
+                                    )}
+                                </button>
+                                {membersExpanded && (
+                                    <div className="ml-4 mt-1 space-y-0.5 border-l-2 border-slate-100 pl-3">
+                                        {defaultMemberSubItems.map((sub) => {
+                                            const Icon = sub.icon;
+                                            const active = sub.exact
+                                                ? location.pathname === sub.path
+                                                : location.pathname.startsWith(sub.path);
+                                            return (
+                                                <Link
+                                                    key={sub.path}
+                                                    to={sub.path}
+                                                    data-testid={`nav-${sub.key}`}
+                                                    className={cn(
+                                                        "flex items-center gap-2 px-2.5 py-2 rounded-md text-sm transition-colors",
+                                                        active
+                                                            ? "bg-brand-sky/10 text-brand-sky-active font-medium"
+                                                            : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"
+                                                    )}
+                                                    onClick={() => setSidebarOpen(false)}
+                                                >
+                                                    <Icon className="w-4 h-4" />
+                                                    <span>{getMenuLabel(sub.key, sub.defaultLabel)}</span>
+                                                </Link>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Other nav items */}
+                            {navItems.filter(i => i.path !== '/dashboard').map((item) => {
+                                const Icon = item.icon;
+                                const active = isActive(item);
+                                return (
+                                    <Link
+                                        key={item.path}
+                                        to={item.path}
+                                        data-testid={`nav-${item.label.toLowerCase().replace(/\s+/g, '-')}`}
+                                        className={cn(
+                                            "flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium transition-colors",
+                                            active
+                                                ? "bg-brand-sky/10 text-brand-sky-active"
+                                                : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                                        )}
+                                        onClick={() => setSidebarOpen(false)}
+                                    >
+                                        <Icon className="w-5 h-5" />
+                                        <span>{item.label}</span>
+                                        {active && <ChevronRight className="w-4 h-4 ml-auto" />}
+                                    </Link>
+                                );
+                            })}
+                        </>
+                    )}
+
+                    {variant === 'admin' && navItems.map((item) => {
                         const Icon = item.icon;
                         const active = isActive(item);
                         return (
@@ -132,22 +270,15 @@ export default function DashboardLayout({ variant = 'church' }) {
                     })}
                 </nav>
 
-                {/* Bottom section */}
-                <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-slate-100">
+                <div className="p-4 border-t border-slate-100 shrink-0">
                     {variant === 'admin' && user?.role === 'super_admin' && (
-                        <Link
-                            to="/dashboard"
-                            className="flex items-center gap-2 px-3 py-2 text-sm text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg mb-2"
-                        >
+                        <Link to="/dashboard" className="flex items-center gap-2 px-3 py-2 text-sm text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg mb-2">
                             <BarChart3 className="w-4 h-4" />
                             <span>Painel Igreja</span>
                         </Link>
                     )}
                     {variant === 'church' && user?.role === 'super_admin' && (
-                        <Link
-                            to="/admin"
-                            className="flex items-center gap-2 px-3 py-2 text-sm text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg mb-2"
-                        >
+                        <Link to="/admin" className="flex items-center gap-2 px-3 py-2 text-sm text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg mb-2">
                             <Building2 className="w-4 h-4" />
                             <span>Painel Admin</span>
                         </Link>
@@ -155,16 +286,10 @@ export default function DashboardLayout({ variant = 'church' }) {
                 </div>
             </aside>
 
-            {/* Main content */}
             <div className="lg:pl-64">
-                {/* Header */}
                 <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 lg:px-6 sticky top-0 z-30">
                     <div className="flex items-center gap-4">
-                        <button
-                            onClick={() => setSidebarOpen(true)}
-                            className="lg:hidden p-2 rounded-lg hover:bg-slate-100"
-                            data-testid="mobile-menu-btn"
-                        >
+                        <button onClick={() => setSidebarOpen(true)} className="lg:hidden p-2 rounded-lg hover:bg-slate-100" data-testid="mobile-menu-btn">
                             <Menu className="w-5 h-5" />
                         </button>
                         <h1 className="font-heading font-semibold text-slate-900">
@@ -180,9 +305,7 @@ export default function DashboardLayout({ variant = 'church' }) {
                                         {getInitials(user?.name)}
                                     </AvatarFallback>
                                 </Avatar>
-                                <span className="hidden sm:block text-sm font-medium text-slate-700">
-                                    {user?.name}
-                                </span>
+                                <span className="hidden sm:block text-sm font-medium text-slate-700">{user?.name}</span>
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-56">
@@ -206,7 +329,6 @@ export default function DashboardLayout({ variant = 'church' }) {
                     </DropdownMenu>
                 </header>
 
-                {/* Page content */}
                 <main className="p-4 lg:p-6">
                     <Outlet />
                 </main>
