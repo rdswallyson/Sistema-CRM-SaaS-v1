@@ -19,7 +19,7 @@ import {
 import { Checkbox } from '../../components/ui/checkbox';
 import {
     Plus, MoreVertical, Edit, Trash2, Users, Loader2, Search,
-    Building2, Archive, CheckCircle, X, UserPlus,
+    Building2, Archive, CheckCircle, X, UserPlus, Check,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
