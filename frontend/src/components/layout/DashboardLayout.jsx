@@ -100,6 +100,9 @@ export default function DashboardLayout({ variant = 'church' }) {
         if (location.pathname.startsWith('/dashboard/members')) {
             setMembersExpanded(true);
         }
+        if (location.pathname.startsWith('/dashboard/groups')) {
+            setGroupsExpanded(true);
+        }
     }, [location.pathname]);
 
     const fetchMenuLabels = async () => {
