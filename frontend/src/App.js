@@ -14,6 +14,15 @@ import ChurchDashboard from "./pages/church/ChurchDashboard";
 import MemberProfilePage from "./pages/church/MemberProfilePage";
 import DepartmentsPage from "./pages/church/DepartmentsPage";
 import DepartmentDetailPage from "./pages/church/DepartmentDetailPage";
+
+// Groups Pages
+import GroupsList from "./pages/church/groups/GroupsList";
+import AddGroup from "./pages/church/groups/AddGroup";
+import GroupCategories from "./pages/church/groups/GroupCategories";
+import GroupReports from "./pages/church/groups/GroupReports";
+import GroupExport from "./pages/church/groups/GroupExport";
+import GroupStrategicPanel from "./pages/church/groups/GroupStrategicPanel";
+import GroupDetailPage from "./pages/church/groups/GroupDetailPage";
 import EventsPage from "./pages/church/EventsPage";
 import FinancialPage from "./pages/church/FinancialPage";
 import CommunicationPage from "./pages/church/CommunicationPage";
