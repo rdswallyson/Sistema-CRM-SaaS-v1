@@ -200,13 +200,13 @@ export default function ChurchDashboard() {
                     </CardContent>
                 </Card>
 
-                <Card className="dashboard-card" data-testid="metric-ministries">
+                <Card className="dashboard-card" data-testid="metric-departments">
                     <CardContent className="pt-6">
                         <div className="flex items-start justify-between">
                             <div>
-                                <p className="text-sm font-medium text-slate-500">Ministérios</p>
+                                <p className="text-sm font-medium text-slate-500">Departamentos</p>
                                 <p className="text-3xl font-bold text-slate-900 mt-1">
-                                    {dashboard?.total_ministries || 0}
+                                    {dashboard?.total_departments || dashboard?.total_ministries || 0}
                                 </p>
                                 <p className="text-sm text-slate-500 mt-2">Ativos na igreja</p>
                             </div>
