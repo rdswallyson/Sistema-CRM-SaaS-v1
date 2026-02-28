@@ -8,7 +8,7 @@ import os
 import time
 from datetime import datetime
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://firmes-staging.preview.emergentagent.com')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://firmes-grupos.preview.emergentagent.com')
 
 # Test credentials - Church Admin with tenant_id
 CHURCH_ADMIN_EMAIL = "admin.teste.154017@teste.com"
