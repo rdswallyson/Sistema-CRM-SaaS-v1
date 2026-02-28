@@ -345,6 +345,82 @@ export default function CommunicationPage() {
                     </CardContent>
                 </Card>
             </div>
+
+            {/* Birthday Greeting Template */}
+            <Card className="dashboard-card" data-testid="birthday-template-section">
+                <CardHeader>
+                    <CardTitle className="font-heading flex items-center gap-2">
+                        <Cake className="w-5 h-5 text-amber-500" />
+                        Mensagem de Aniversário
+                    </CardTitle>
+                    <CardDescription>
+                        Configure a mensagem automática enviada aos aniversariantes. Use <code className="text-xs bg-slate-100 px-1 py-0.5 rounded">{'{nome}'}</code> para o nome do membro e <code className="text-xs bg-slate-100 px-1 py-0.5 rounded">{'{igreja}'}</code> para o nome da igreja.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="grid md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label>Canal de Envio</Label>
+                            <Select
+                                value={birthdayTemplate.channel}
+                                onValueChange={(v) => setBirthdayTemplate(prev => ({ ...prev, channel: v }))}
+                            >
+                                <SelectTrigger data-testid="birthday-channel-select">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="email">Email</SelectItem>
+                                    <SelectItem value="sms">SMS</SelectItem>
+                                    <SelectItem value="whatsapp">WhatsApp</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="space-y-2">
+                            <Label>Assunto (Email)</Label>
+                            <Input
+                                value={birthdayTemplate.subject}
+                                onChange={(e) => setBirthdayTemplate(prev => ({ ...prev, subject: e.target.value }))}
+                                placeholder="Feliz Aniversário!"
+                                data-testid="birthday-subject-input"
+                            />
+                        </div>
+                    </div>
+                    <div className="space-y-2">
+                        <Label>Mensagem</Label>
+                        <textarea
+                            value={birthdayTemplate.message_template}
+                            onChange={(e) => setBirthdayTemplate(prev => ({ ...prev, message_template: e.target.value }))}
+                            placeholder="Feliz aniversário, {nome}! A igreja {igreja} deseja a você um dia cheio de bençãos..."
+                            className="w-full h-28 px-3 py-2 border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-brand-blue/20 text-sm"
+                            data-testid="birthday-message-input"
+                        />
+                    </div>
+                    <div className="flex items-center justify-between p-3 bg-amber-50 rounded-lg border border-amber-100">
+                        <div>
+                            <Label className="cursor-pointer">Envio automático diário</Label>
+                            <p className="text-xs text-slate-500">Envia automaticamente todos os dias para aniversariantes</p>
+                        </div>
+                        <Switch
+                            checked={birthdayTemplate.auto_send}
+                            onCheckedChange={(v) => setBirthdayTemplate(prev => ({ ...prev, auto_send: v }))}
+                            data-testid="birthday-auto-send-switch"
+                        />
+                    </div>
+                    <Button
+                        onClick={handleSaveTemplate}
+                        className="bg-slate-900 hover:bg-slate-800"
+                        disabled={savingTemplate}
+                        data-testid="save-birthday-template-btn"
+                    >
+                        {savingTemplate ? (
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        ) : (
+                            <Save className="w-4 h-4 mr-2" />
+                        )}
+                        Salvar Template
+                    </Button>
+                </CardContent>
+            </Card>
         </div>
     );
 }
