@@ -55,6 +55,10 @@ tenants, users, members, ministries, events, donations, plans, discipleship_trai
 - [x] **Members Module Evolution (9 sub-pages) - Feb 28, 2026**
 - [x] **Birthday notifications on Dashboard - Feb 28, 2026**
 - [x] **Birthday auto-greeting system with template - Feb 28, 2026**
+- [x] **Departments module (replaces Ministérios) - Feb 28, 2026**
+  - Tabs Ativos/Arquivados, cards com membros, busca inteligente
+  - Dashboard interno do departamento com tabela e exportação CSV
+  - Migração automática de Ministérios → Departamentos
 - [x] Event edit/delete functionality
 - [x] Member profile photo display
 
