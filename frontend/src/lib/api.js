@@ -70,11 +70,34 @@ export const churchAPI = {
     getDashboard: () => api.get('/church/dashboard'),
     
     // Members
-    getMembers: () => api.get('/church/members'),
+    getMembers: (params = {}) => api.get('/church/members', { params }),
     getMember: (id) => api.get(`/church/members/${id}`),
     createMember: (data) => api.post('/church/members', data),
     updateMember: (id, data) => api.put(`/church/members/${id}`, data),
     deleteMember: (id) => api.delete(`/church/members/${id}`),
+    getMemberBirthdays: (month) => api.get('/church/members/birthdays', { params: { month } }),
+    
+    // Member Categories
+    getMemberCategories: () => api.get('/church/member-categories'),
+    createMemberCategory: (data) => api.post('/church/member-categories', data),
+    updateMemberCategory: (id, data) => api.put(`/church/member-categories/${id}`, data),
+    deleteMemberCategory: (id) => api.delete(`/church/member-categories/${id}`),
+    
+    // Member Positions (Cargos)
+    getMemberPositions: () => api.get('/church/member-positions'),
+    createMemberPosition: (data) => api.post('/church/member-positions', data),
+    updateMemberPosition: (id, data) => api.put(`/church/member-positions/${id}`, data),
+    deleteMemberPosition: (id) => api.delete(`/church/member-positions/${id}`),
+    
+    // Custom Fields
+    getCustomFields: () => api.get('/church/custom-fields'),
+    createCustomField: (data) => api.post('/church/custom-fields', data),
+    updateCustomField: (id, data) => api.put(`/church/custom-fields/${id}`, data),
+    deleteCustomField: (id) => api.delete(`/church/custom-fields/${id}`),
+    
+    // Menu Customization
+    getMenuCustomization: () => api.get('/church/menu-customization'),
+    updateMenuCustomization: (items) => api.put('/church/menu-customization', items),
     
     // Ministries
     getMinistries: () => api.get('/church/ministries'),
