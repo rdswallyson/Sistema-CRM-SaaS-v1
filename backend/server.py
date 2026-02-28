@@ -750,6 +750,8 @@ async def delete_member(member_id: str, current_user: dict = Depends(require_chu
         raise HTTPException(status_code=404, detail="Membro não encontrado")
     # Remove department links for this member
     await db.department_members.delete_many({"member_id": member_id})
+    # Remove group links for this member
+    await db.group_members.delete_many({"member_id": member_id})
     return {"message": "Membro removido com sucesso"}
 
 # ==================== CHURCH ADMIN - MINISTRIES ====================
