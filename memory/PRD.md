@@ -1,86 +1,70 @@
-# Firmes - Church Management SaaS
+# Firmes - Church Management SaaS Platform
 
 ## Problem Statement
-Sistema completo SaaS Multi-Tenant para gestão de igrejas chamado "Firmes". Sistema preparado para milhares de instituições com ambiente isolado por tenant_id.
+Multi-tenant SaaS platform for church management ("Firmes"), supporting Super Admin and Church Admin roles with isolated tenant data.
 
-## Architecture
-- **Backend**: FastAPI + MongoDB (motor async) + JWT Authentication
-- **Frontend**: React + Tailwind CSS + Shadcn UI + Recharts
-- **Payments**: Stripe Integration (test mode)
-- **Communication**: Twilio SMS/WhatsApp (MOCK - logs stored)
+## Tech Stack
+- **Backend:** FastAPI + MongoDB (Motor)
+- **Frontend:** React + TailwindCSS + Shadcn UI
+- **Auth:** JWT-based authentication
+- **Architecture:** Multi-tenant with `tenant_id` isolation
 
-## User Personas
-1. **Super Admin**: Proprietário da plataforma - gestão global
-2. **Admin Igreja**: Pastor/Líder - gestão da igreja
-3. **Tesoureiro**: Controle financeiro
-4. **Líder de Ministério**: Gestão de ministérios
-5. **Secretaria**: Cadastros e comunicação
-6. **Membro/Visitante**: Acesso limitado
+## Core Modules Implemented
 
-## Core Requirements (Static)
-- Multi-tenant architecture with tenant_id isolation
-- JWT authentication with role-based access
-- Dashboard with real-time metrics and charts
-- Member management with spiritual history
-- Ministry management with goals
-- Event management with check-in
-- Financial module (tithes, offerings, donations)
-- Communication module (email, SMS, WhatsApp)
-- Discipleship module with spiritual growth trails
-- LGPD compliance
+### Super Admin Panel
+- Manage churches (CRUD, activate/deactivate)
+- Manage subscription plans
+- Global metrics dashboard
+- Promotions management
 
-## What's Been Implemented (Feb 2026)
-- [x] Landing page institucional completa
-- [x] Sistema de autenticação JWT multi-tenant
-- [x] Super Admin Dashboard com métricas globais
-- [x] Gestão de igrejas (CRUD completo)
-- [x] Gestão de planos e preços
-- [x] Gestão de promoções/cupons
-- [x] Church Admin Dashboard com gráficos
-- [x] Gestão de membros completa
-- [x] **Perfil completo do membro** com conexões a todos os módulos
-- [x] Gestão de ministérios
-- [x] Gestão de eventos
-- [x] Módulo financeiro (dízimos, ofertas, doações)
-- [x] Módulo de comunicação (logs)
-- [x] **Módulo de Discipulado completo**
-  - 5 Trilhas padrão
-  - Sistema de etapas (texto, vídeo, quiz, tarefa)
-  - Inscrição e progresso de membros
-  - Sistema de mentoria
-  - Certificados de conclusão
-- [x] Configurações e personalização
-- [x] Integração Stripe (test mode)
+### Church Admin Panel
+- **Dashboard:** KPI cards, charts (member growth, revenue), alerts
+- **Members Module (EVOLVED - Feb 28, 2026):**
+  - Ver todos: List with pagination, search, filters (status/category/position)
+  - Adicionar membro: Full form with photo, category, position, custom fields
+  - Campos adicionais: Custom fields CRUD (text/number/date/select/checkbox)
+  - Categorias: Member categories CRUD with color
+  - Cargos: Positions CRUD with hierarchy level
+  - Cartão do membro: Digital card with QR code, print/PDF
+  - Aniversariantes: Birthday list by month with today highlight
+  - Relatórios: General/by category/by position reports, CSV export
+  - Editar nomes do menu: Admin can customize all menu labels
+- **Ministries:** CRUD with edit/delete
+- **Events:** CRUD with edit/delete, check-in
+- **Financial:** Donations tracking (tithe, offering, special)
+- **Discipleship:** Trails with progress tracking, mentorship
+- **Communication:** Email/SMS/WhatsApp (placeholder)
+- **Settings:** Church customization
 
-## Demo Credentials
-- **Super Admin**: admin@firmes.com / admin123
-- **Church Admin**: pastor@vidanova.com / pastor123
+### Landing Page
+- Conversion-focused institutional site with plans/FAQ
 
-## Prioritized Backlog
-### P0 (Critical)
-- [ ] App Mobile (React Native ou PWA)
-- [ ] Integração Mercado Pago (Brasil)
-- [ ] Check-in QR Code real para eventos
+## Database Collections
+tenants, users, members, ministries, events, donations, plans, discipleship_trails, discipleship_progress, member_categories, member_positions, custom_fields, menu_personalizacoes, communication_logs
 
-### P1 (High)
-- [ ] Twilio integration real (SMS/WhatsApp)
-- [ ] Email sending (SendGrid)
-- [ ] Doações recorrentes automáticas
-- [ ] Relatórios exportáveis (PDF/Excel)
-- [ ] Notificações automáticas de progresso no discipulado
-- [ ] Certificados digitais de conclusão
+## Credentials
+- Super Admin: admin@firmes.com / admin123
+- Church Admin: admin.teste.154017@teste.com / admin123
 
-### P2 (Medium)
-- [ ] Gamificação (badges, pontos)
-- [ ] Relatórios de engajamento no discipulado
-- [ ] Automação para visitantes (fluxos)
+## What's Completed
+- [x] Full-stack scaffolding
+- [x] Multi-tenant architecture with JWT auth
+- [x] All core modules (Members, Ministries, Events, Financial, Discipleship, Communication)
+- [x] Branding "Firmes" with sky blue theme
+- [x] Enhanced member profile with photo
+- [x] **Members Module Evolution (9 sub-pages) - Feb 28, 2026**
+- [x] Event edit/delete functionality
+- [x] Member profile photo display
+
+## Pending / Backlog
+- [ ] Full System Integration Audit (all clickable/functional)
+- [ ] Edit functionality for all modules (Financial donations etc.)
+- [ ] Gestão de Suporte e Tickets
+- [ ] Heatmap de presença
 - [ ] Análise preditiva de evasão
-- [ ] White label completo
-- [ ] Backup automático diário
-- [ ] Logs de atividade (auditoria)
-
-## Next Tasks
-1. Implementar notificações automáticas de progresso
-2. Criar certificados digitais de conclusão de trilhas
-3. Implementar gamificação (badges, pontos)
-4. Relatórios de engajamento no discipulado
+- [ ] WhatsApp/Twilio real integration
+- [ ] Gamification and Certificates
+- [ ] White-Labeling (custom domains, editable prices)
+- [ ] Mobile App
+- [ ] Advanced AI features (behavioral analysis)
+- [ ] Refactor server.py into modular structure
