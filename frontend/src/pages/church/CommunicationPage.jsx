@@ -39,6 +39,13 @@ export default function CommunicationPage() {
     const [subject, setSubject] = useState('');
     const [loading, setLoading] = useState(true);
     const [sending, setSending] = useState(false);
+    const [birthdayTemplate, setBirthdayTemplate] = useState({
+        message_template: '',
+        channel: 'email',
+        subject: '',
+        auto_send: false,
+    });
+    const [savingTemplate, setSavingTemplate] = useState(false);
 
     useEffect(() => {
         fetchData();
@@ -46,12 +53,16 @@ export default function CommunicationPage() {
 
     const fetchData = async () => {
         try {
-            const [membersRes, historyRes] = await Promise.all([
+            const [membersRes, historyRes, templateRes] = await Promise.all([
                 churchAPI.getMembers(),
                 churchAPI.getCommunicationHistory(),
+                churchAPI.getBirthdayTemplate(),
             ]);
-            setMembers(membersRes.data);
+            setMembers(membersRes.data?.items || membersRes.data || []);
             setHistory(historyRes.data);
+            if (templateRes.data) {
+                setBirthdayTemplate(templateRes.data);
+            }
         } catch (error) {
             console.error('Error fetching data:', error);
         } finally {
