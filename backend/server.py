@@ -977,6 +977,261 @@ async def migrate_ministries_to_departments():
         migrated += 1
     return {"message": f"{migrated} ministério(s) migrado(s) para departamentos", "migrated": migrated}
 
+
+# ==================== CHURCH ADMIN - GROUP CATEGORIES ====================
+@api_router.post("/church/group-categories")
+async def create_group_category(data: GroupCategoryBase, current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    if not tenant_id:
+        raise HTTPException(status_code=400, detail="Tenant ID não encontrado")
+    cat = GroupCategory(**data.model_dump(), tenant_id=tenant_id)
+    doc = cat.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    await db.group_categories.insert_one(doc)
+    return cat
+
+@api_router.get("/church/group-categories")
+async def list_group_categories(current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    query = {"tenant_id": tenant_id} if tenant_id else {}
+    return await db.group_categories.find(query, {"_id": 0}).to_list(100)
+
+@api_router.put("/church/group-categories/{cat_id}")
+async def update_group_category(cat_id: str, updates: Dict[str, Any], current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    query = {"id": cat_id}
+    if tenant_id:
+        query["tenant_id"] = tenant_id
+    result = await db.group_categories.update_one(query, {"$set": updates})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Categoria não encontrada")
+    return {"message": "Categoria atualizada"}
+
+@api_router.delete("/church/group-categories/{cat_id}")
+async def delete_group_category(cat_id: str, current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    query = {"id": cat_id}
+    if tenant_id:
+        query["tenant_id"] = tenant_id
+    result = await db.group_categories.delete_one(query)
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Categoria não encontrada")
+    return {"message": "Categoria removida"}
+
+# ==================== CHURCH ADMIN - GROUPS ====================
+@api_router.post("/church/groups")
+async def create_group(data: GroupBase, current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    if not tenant_id:
+        raise HTTPException(status_code=400, detail="Tenant ID não encontrado")
+    group = Group(**data.model_dump(), tenant_id=tenant_id)
+    doc = group.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    await db.groups.insert_one(doc)
+    return group
+
+@api_router.get("/church/groups")
+async def list_groups(
+    status: Optional[str] = None,
+    category_id: Optional[str] = None,
+    department_id: Optional[str] = None,
+    leader_id: Optional[str] = None,
+    search: Optional[str] = None,
+    current_user: dict = Depends(require_church_admin),
+):
+    tenant_id = current_user.get('tenant_id')
+    query = {"tenant_id": tenant_id} if tenant_id else {}
+    if status and status != "all":
+        query["status"] = status
+    if category_id:
+        query["category_id"] = category_id
+    if department_id:
+        query["department_id"] = department_id
+    if leader_id:
+        query["leader_id"] = leader_id
+    if search:
+        query["name"] = {"$regex": search, "$options": "i"}
+
+    groups = await db.groups.find(query, {"_id": 0}).to_list(500)
+
+    # Enrich with related data
+    all_categories = await db.group_categories.find({"tenant_id": tenant_id}, {"_id": 0}).to_list(100)
+    cat_map = {c["id"]: c for c in all_categories}
+    all_departments = await db.departments.find({"tenant_id": tenant_id}, {"_id": 0}).to_list(100)
+    dept_map = {d["id"]: d.get("name", "") for d in all_departments}
+
+    for g in groups:
+        # Member count
+        count = await db.group_members.count_documents({"group_id": g["id"], "tenant_id": tenant_id})
+        g["member_count"] = count
+        # Category info
+        cat = cat_map.get(g.get("category_id", ""))
+        g["category_name"] = cat.get("name", "") if cat else ""
+        g["category_color"] = cat.get("color", "#6366f1") if cat else "#6366f1"
+        # Department name
+        g["department_name"] = dept_map.get(g.get("department_id", ""), "")
+        # Leader name
+        if g.get("leader_id"):
+            leader = await db.members.find_one({"id": g["leader_id"]}, {"_id": 0, "name": 1, "photo_url": 1})
+            g["leader_name"] = leader.get("name") if leader else ""
+            g["leader_photo"] = leader.get("photo_url") if leader else ""
+        else:
+            g["leader_name"] = ""
+            g["leader_photo"] = ""
+        # Preview members
+        links = await db.group_members.find({"group_id": g["id"], "tenant_id": tenant_id}, {"_id": 0, "member_id": 1}).limit(4).to_list(4)
+        if links:
+            preview_ids = [l["member_id"] for l in links]
+            previews = await db.members.find({"id": {"$in": preview_ids}}, {"_id": 0, "id": 1, "name": 1, "photo_url": 1}).to_list(4)
+            g["members_preview"] = previews
+        else:
+            g["members_preview"] = []
+
+    return groups
+
+@api_router.get("/church/groups/strategic-dashboard")
+async def get_groups_strategic_dashboard(current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    if not tenant_id:
+        raise HTTPException(status_code=400, detail="Tenant ID não encontrado")
+
+    total_groups = await db.groups.count_documents({"tenant_id": tenant_id, "status": "active"})
+    total_closed = await db.groups.count_documents({"tenant_id": tenant_id, "status": "closed"})
+    total_participants = await db.group_members.count_documents({"tenant_id": tenant_id})
+
+    # Groups by category
+    groups = await db.groups.find({"tenant_id": tenant_id, "status": "active"}, {"_id": 0}).to_list(500)
+    categories = await db.group_categories.find({"tenant_id": tenant_id}, {"_id": 0}).to_list(100)
+    cat_map = {c["id"]: c.get("name", "Sem categoria") for c in categories}
+
+    by_category = {}
+    for g in groups:
+        cat_name = cat_map.get(g.get("category_id", ""), "Sem categoria")
+        by_category[cat_name] = by_category.get(cat_name, 0) + 1
+
+    # Groups by department
+    departments = await db.departments.find({"tenant_id": tenant_id}, {"_id": 0}).to_list(100)
+    dept_map = {d["id"]: d.get("name", "Sem departamento") for d in departments}
+    by_department = {}
+    for g in groups:
+        dept_name = dept_map.get(g.get("department_id", ""), "Sem departamento")
+        by_department[dept_name] = by_department.get(dept_name, 0) + 1
+
+    # Ranking by member count
+    ranking = []
+    for g in groups:
+        count = await db.group_members.count_documents({"group_id": g["id"], "tenant_id": tenant_id})
+        ranking.append({"id": g["id"], "name": g["name"], "member_count": count})
+    ranking.sort(key=lambda x: x["member_count"], reverse=True)
+
+    return {
+        "total_groups": total_groups,
+        "total_closed": total_closed,
+        "total_participants": total_participants,
+        "by_category": by_category,
+        "by_department": by_department,
+        "ranking": ranking[:10],
+    }
+
+@api_router.get("/church/groups/{group_id}")
+async def get_group(group_id: str, current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    query = {"id": group_id}
+    if tenant_id:
+        query["tenant_id"] = tenant_id
+    group = await db.groups.find_one(query, {"_id": 0})
+    if not group:
+        raise HTTPException(status_code=404, detail="Grupo não encontrado")
+    # Members
+    links = await db.group_members.find({"group_id": group_id, "tenant_id": tenant_id}, {"_id": 0}).to_list(2000)
+    member_ids = [l["member_id"] for l in links]
+    joined_map = {l["member_id"]: l.get("joined_at", "") for l in links}
+    members = []
+    if member_ids:
+        member_docs = await db.members.find({"id": {"$in": member_ids}}, {"_id": 0}).to_list(2000)
+        positions = await db.member_positions.find({"tenant_id": tenant_id}, {"_id": 0}).to_list(100)
+        pos_map = {p["id"]: p["name"] for p in positions}
+        for m in member_docs:
+            m["joined_at"] = joined_map.get(m["id"], "")
+            m["position_name"] = pos_map.get(m.get("position_id", ""), "")
+            members.append(m)
+    group["members"] = members
+    group["member_count"] = len(members)
+    # Category
+    if group.get("category_id"):
+        cat = await db.group_categories.find_one({"id": group["category_id"]}, {"_id": 0})
+        group["category_name"] = cat.get("name") if cat else ""
+    # Department
+    if group.get("department_id"):
+        dept = await db.departments.find_one({"id": group["department_id"]}, {"_id": 0})
+        group["department_name"] = dept.get("name") if dept else ""
+    # Leader
+    if group.get("leader_id"):
+        leader = await db.members.find_one({"id": group["leader_id"]}, {"_id": 0, "name": 1, "photo_url": 1})
+        group["leader_name"] = leader.get("name") if leader else ""
+    return group
+
+@api_router.put("/church/groups/{group_id}")
+async def update_group(group_id: str, updates: Dict[str, Any], current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    query = {"id": group_id}
+    if tenant_id:
+        query["tenant_id"] = tenant_id
+    updates["updated_at"] = datetime.now(timezone.utc).isoformat()
+    result = await db.groups.update_one(query, {"$set": updates})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Grupo não encontrado")
+    return {"message": "Grupo atualizado"}
+
+@api_router.delete("/church/groups/{group_id}")
+async def delete_group(group_id: str, current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    query = {"id": group_id}
+    if tenant_id:
+        query["tenant_id"] = tenant_id
+    result = await db.groups.delete_one(query)
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Grupo não encontrado")
+    await db.group_members.delete_many({"group_id": group_id, "tenant_id": tenant_id})
+    return {"message": "Grupo removido"}
+
+# ==================== GROUP MEMBERS ====================
+@api_router.post("/church/groups/{group_id}/members")
+async def add_members_to_group(group_id: str, data: Dict[str, Any], current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    if not tenant_id:
+        raise HTTPException(status_code=400, detail="Tenant ID não encontrado")
+    member_ids = data.get("member_ids", [])
+    if not member_ids:
+        raise HTTPException(status_code=400, detail="Nenhum membro selecionado")
+    group = await db.groups.find_one({"id": group_id, "tenant_id": tenant_id})
+    if not group:
+        raise HTTPException(status_code=404, detail="Grupo não encontrado")
+    added = 0
+    for mid in member_ids:
+        exists = await db.group_members.find_one({"group_id": group_id, "member_id": mid, "tenant_id": tenant_id})
+        if exists:
+            continue
+        link = GroupMemberLink(group_id=group_id, member_id=mid, tenant_id=tenant_id)
+        doc = link.model_dump()
+        doc["joined_at"] = doc["joined_at"].isoformat()
+        await db.group_members.insert_one(doc)
+        added += 1
+    count = await db.group_members.count_documents({"group_id": group_id, "tenant_id": tenant_id})
+    await db.groups.update_one({"id": group_id}, {"$set": {"member_count": count}})
+    return {"message": f"{added} membro(s) adicionado(s)", "added": added}
+
+@api_router.delete("/church/groups/{group_id}/members/{member_id}")
+async def remove_member_from_group(group_id: str, member_id: str, current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    result = await db.group_members.delete_one({"group_id": group_id, "member_id": member_id, "tenant_id": tenant_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Vínculo não encontrado")
+    count = await db.group_members.count_documents({"group_id": group_id, "tenant_id": tenant_id})
+    await db.groups.update_one({"id": group_id}, {"$set": {"member_count": count}})
+    return {"message": "Membro removido do grupo"}
+
+
 # ==================== CHURCH ADMIN - EVENTS ====================
 @api_router.post("/church/events", response_model=Event)
 async def create_event(event_data: EventCreate, current_user: dict = Depends(require_church_admin)):
