@@ -226,6 +226,72 @@ class GroupMemberLink(BaseModel):
     tenant_id: str
     joined_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
+# ==================== ENSINO (TEACHING) MODELS ====================
+class EstudoBase(BaseModel):
+    titulo: str
+    descricao: Optional[str] = None
+    categoria: Optional[str] = None
+    nivel: str = "basico"
+    arquivo: Optional[str] = None
+    status: str = "active"
+    escola_id: Optional[str] = None
+    turma_id: Optional[str] = None
+
+class Estudo(EstudoBase):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    tenant_id: str
+    data_criacao: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class EscolaBase(BaseModel):
+    nome: str
+    descricao: Optional[str] = None
+    responsavel_id: Optional[str] = None
+    departamento_id: Optional[str] = None
+    status: str = "active"
+
+class Escola(EscolaBase):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    tenant_id: str
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class TurmaBase(BaseModel):
+    nome: str
+    escola_id: Optional[str] = None
+    professor_id: Optional[str] = None
+    data_inicio: Optional[str] = None
+    data_fim: Optional[str] = None
+    status: str = "active"
+
+class Turma(TurmaBase):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    tenant_id: str
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class TurmaMembroLink(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    turma_id: str
+    membro_id: str
+    tenant_id: str
+    data_entrada: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class ProgressoEnsinoBase(BaseModel):
+    membro_id: str
+    turma_id: Optional[str] = None
+    estudo_id: Optional[str] = None
+    status: str = "em_andamento"
+    nota: Optional[float] = None
+    observacao: Optional[str] = None
+
+class ProgressoEnsino(ProgressoEnsinoBase):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    tenant_id: str
+    data_atualizacao: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
 class EventBase(BaseModel):
     title: str
     description: Optional[str] = None
