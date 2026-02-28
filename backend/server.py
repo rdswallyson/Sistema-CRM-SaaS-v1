@@ -2259,6 +2259,393 @@ async def seed_plans():
     
     return {"message": "Planos criados com sucesso"}
 
+# ==================== CHURCH ADMIN - ESTUDOS (STUDIES) ====================
+@api_router.post("/church/estudos")
+async def create_estudo(data: EstudoBase, current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    if not tenant_id:
+        raise HTTPException(status_code=400, detail="Tenant ID não encontrado")
+    estudo = Estudo(**data.model_dump(), tenant_id=tenant_id)
+    doc = estudo.model_dump()
+    doc['data_criacao'] = doc['data_criacao'].isoformat()
+    await db.estudos.insert_one(doc)
+    return estudo
+
+@api_router.get("/church/estudos")
+async def list_estudos(
+    status: Optional[str] = None,
+    nivel: Optional[str] = None,
+    escola_id: Optional[str] = None,
+    turma_id: Optional[str] = None,
+    search: Optional[str] = None,
+    current_user: dict = Depends(require_church_admin),
+):
+    tenant_id = current_user.get('tenant_id')
+    query = {"tenant_id": tenant_id} if tenant_id else {}
+    if status and status != "all":
+        query["status"] = status
+    if nivel and nivel != "all":
+        query["nivel"] = nivel
+    if escola_id:
+        query["escola_id"] = escola_id
+    if turma_id:
+        query["turma_id"] = turma_id
+    if search:
+        query["titulo"] = {"$regex": search, "$options": "i"}
+    estudos = await db.estudos.find(query, {"_id": 0}).sort("data_criacao", -1).to_list(500)
+    # Enrich with escola and turma names
+    for e in estudos:
+        if e.get("escola_id"):
+            escola = await db.escolas.find_one({"id": e["escola_id"]}, {"_id": 0, "nome": 1})
+            e["escola_nome"] = escola["nome"] if escola else None
+        if e.get("turma_id"):
+            turma = await db.turmas.find_one({"id": e["turma_id"]}, {"_id": 0, "nome": 1})
+            e["turma_nome"] = turma["nome"] if turma else None
+    return estudos
+
+@api_router.get("/church/estudos/{estudo_id}")
+async def get_estudo(estudo_id: str, current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    query = {"id": estudo_id}
+    if tenant_id:
+        query["tenant_id"] = tenant_id
+    estudo = await db.estudos.find_one(query, {"_id": 0})
+    if not estudo:
+        raise HTTPException(status_code=404, detail="Estudo não encontrado")
+    if estudo.get("escola_id"):
+        escola = await db.escolas.find_one({"id": estudo["escola_id"]}, {"_id": 0, "nome": 1})
+        estudo["escola_nome"] = escola["nome"] if escola else None
+    if estudo.get("turma_id"):
+        turma = await db.turmas.find_one({"id": estudo["turma_id"]}, {"_id": 0, "nome": 1})
+        estudo["turma_nome"] = turma["nome"] if turma else None
+    return estudo
+
+@api_router.put("/church/estudos/{estudo_id}")
+async def update_estudo(estudo_id: str, updates: Dict[str, Any], current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    query = {"id": estudo_id}
+    if tenant_id:
+        query["tenant_id"] = tenant_id
+    result = await db.estudos.update_one(query, {"$set": updates})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Estudo não encontrado")
+    return {"message": "Estudo atualizado"}
+
+@api_router.delete("/church/estudos/{estudo_id}")
+async def delete_estudo(estudo_id: str, current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    query = {"id": estudo_id}
+    if tenant_id:
+        query["tenant_id"] = tenant_id
+    result = await db.estudos.delete_one(query)
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Estudo não encontrado")
+    await db.progresso_ensino.delete_many({"estudo_id": estudo_id})
+    return {"message": "Estudo removido"}
+
+
+# ==================== CHURCH ADMIN - ESCOLAS (SCHOOLS) ====================
+@api_router.post("/church/escolas")
+async def create_escola(data: EscolaBase, current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    if not tenant_id:
+        raise HTTPException(status_code=400, detail="Tenant ID não encontrado")
+    escola = Escola(**data.model_dump(), tenant_id=tenant_id)
+    doc = escola.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    await db.escolas.insert_one(doc)
+    return escola
+
+@api_router.get("/church/escolas")
+async def list_escolas(
+    status: Optional[str] = None,
+    search: Optional[str] = None,
+    current_user: dict = Depends(require_church_admin),
+):
+    tenant_id = current_user.get('tenant_id')
+    query = {"tenant_id": tenant_id} if tenant_id else {}
+    if status and status != "all":
+        query["status"] = status
+    if search:
+        query["nome"] = {"$regex": search, "$options": "i"}
+    escolas = await db.escolas.find(query, {"_id": 0}).sort("created_at", -1).to_list(200)
+    for e in escolas:
+        if e.get("responsavel_id"):
+            member = await db.members.find_one({"id": e["responsavel_id"]}, {"_id": 0, "name": 1})
+            e["responsavel_nome"] = member["name"] if member else None
+        if e.get("departamento_id"):
+            dept = await db.departments.find_one({"id": e["departamento_id"]}, {"_id": 0, "name": 1})
+            e["departamento_nome"] = dept["name"] if dept else None
+        turma_count = await db.turmas.count_documents({"escola_id": e["id"], "tenant_id": tenant_id} if tenant_id else {"escola_id": e["id"]})
+        e["turma_count"] = turma_count
+    return escolas
+
+@api_router.get("/church/escolas/{escola_id}")
+async def get_escola(escola_id: str, current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    query = {"id": escola_id}
+    if tenant_id:
+        query["tenant_id"] = tenant_id
+    escola = await db.escolas.find_one(query, {"_id": 0})
+    if not escola:
+        raise HTTPException(status_code=404, detail="Escola não encontrada")
+    if escola.get("responsavel_id"):
+        member = await db.members.find_one({"id": escola["responsavel_id"]}, {"_id": 0, "name": 1})
+        escola["responsavel_nome"] = member["name"] if member else None
+    if escola.get("departamento_id"):
+        dept = await db.departments.find_one({"id": escola["departamento_id"]}, {"_id": 0, "name": 1})
+        escola["departamento_nome"] = dept["name"] if dept else None
+    turmas = await db.turmas.find({"escola_id": escola_id, "tenant_id": tenant_id} if tenant_id else {"escola_id": escola_id}, {"_id": 0}).to_list(200)
+    escola["turmas"] = turmas
+    estudos = await db.estudos.find({"escola_id": escola_id, "tenant_id": tenant_id} if tenant_id else {"escola_id": escola_id}, {"_id": 0}).to_list(500)
+    escola["estudos"] = estudos
+    return escola
+
+@api_router.put("/church/escolas/{escola_id}")
+async def update_escola(escola_id: str, updates: Dict[str, Any], current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    query = {"id": escola_id}
+    if tenant_id:
+        query["tenant_id"] = tenant_id
+    result = await db.escolas.update_one(query, {"$set": updates})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Escola não encontrada")
+    return {"message": "Escola atualizada"}
+
+@api_router.delete("/church/escolas/{escola_id}")
+async def delete_escola(escola_id: str, current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    query = {"id": escola_id}
+    if tenant_id:
+        query["tenant_id"] = tenant_id
+    result = await db.escolas.delete_one(query)
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Escola não encontrada")
+    return {"message": "Escola removida"}
+
+
+# ==================== CHURCH ADMIN - TURMAS (CLASSES) ====================
+@api_router.post("/church/turmas")
+async def create_turma(data: TurmaBase, current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    if not tenant_id:
+        raise HTTPException(status_code=400, detail="Tenant ID não encontrado")
+    turma = Turma(**data.model_dump(), tenant_id=tenant_id)
+    doc = turma.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    await db.turmas.insert_one(doc)
+    return turma
+
+@api_router.get("/church/turmas")
+async def list_turmas(
+    status: Optional[str] = None,
+    escola_id: Optional[str] = None,
+    search: Optional[str] = None,
+    current_user: dict = Depends(require_church_admin),
+):
+    tenant_id = current_user.get('tenant_id')
+    query = {"tenant_id": tenant_id} if tenant_id else {}
+    if status and status != "all":
+        query["status"] = status
+    if escola_id:
+        query["escola_id"] = escola_id
+    if search:
+        query["nome"] = {"$regex": search, "$options": "i"}
+    turmas = await db.turmas.find(query, {"_id": 0}).sort("created_at", -1).to_list(500)
+    for t in turmas:
+        member_count = await db.turma_membros.count_documents({"turma_id": t["id"]})
+        t["aluno_count"] = member_count
+        if t.get("escola_id"):
+            escola = await db.escolas.find_one({"id": t["escola_id"]}, {"_id": 0, "nome": 1})
+            t["escola_nome"] = escola["nome"] if escola else None
+        if t.get("professor_id"):
+            prof = await db.members.find_one({"id": t["professor_id"]}, {"_id": 0, "name": 1})
+            t["professor_nome"] = prof["name"] if prof else None
+    return turmas
+
+@api_router.get("/church/turmas/{turma_id}")
+async def get_turma(turma_id: str, current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    query = {"id": turma_id}
+    if tenant_id:
+        query["tenant_id"] = tenant_id
+    turma = await db.turmas.find_one(query, {"_id": 0})
+    if not turma:
+        raise HTTPException(status_code=404, detail="Turma não encontrada")
+    if turma.get("escola_id"):
+        escola = await db.escolas.find_one({"id": turma["escola_id"]}, {"_id": 0, "nome": 1})
+        turma["escola_nome"] = escola["nome"] if escola else None
+    if turma.get("professor_id"):
+        prof = await db.members.find_one({"id": turma["professor_id"]}, {"_id": 0, "name": 1})
+        turma["professor_nome"] = prof["name"] if prof else None
+    links = await db.turma_membros.find({"turma_id": turma_id}, {"_id": 0}).to_list(2000)
+    members = []
+    for link in links:
+        member = await db.members.find_one({"id": link["membro_id"]}, {"_id": 0})
+        if member:
+            member["data_entrada"] = link.get("data_entrada")
+            members.append(member)
+    turma["alunos"] = members
+    turma["aluno_count"] = len(members)
+    estudos = await db.estudos.find({"turma_id": turma_id, "tenant_id": tenant_id} if tenant_id else {"turma_id": turma_id}, {"_id": 0}).to_list(500)
+    turma["estudos"] = estudos
+    return turma
+
+@api_router.put("/church/turmas/{turma_id}")
+async def update_turma(turma_id: str, updates: Dict[str, Any], current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    query = {"id": turma_id}
+    if tenant_id:
+        query["tenant_id"] = tenant_id
+    result = await db.turmas.update_one(query, {"$set": updates})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Turma não encontrada")
+    return {"message": "Turma atualizada"}
+
+@api_router.delete("/church/turmas/{turma_id}")
+async def delete_turma(turma_id: str, current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    query = {"id": turma_id}
+    if tenant_id:
+        query["tenant_id"] = tenant_id
+    result = await db.turmas.delete_one(query)
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Turma não encontrada")
+    await db.turma_membros.delete_many({"turma_id": turma_id})
+    await db.progresso_ensino.delete_many({"turma_id": turma_id})
+    return {"message": "Turma removida"}
+
+@api_router.post("/church/turmas/{turma_id}/membros")
+async def add_turma_membros(turma_id: str, data: Dict[str, Any], current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    member_ids = data.get("member_ids", [])
+    if not member_ids:
+        raise HTTPException(status_code=400, detail="Lista de membros vazia")
+    turma = await db.turmas.find_one({"id": turma_id}, {"_id": 0})
+    if not turma:
+        raise HTTPException(status_code=404, detail="Turma não encontrada")
+    added = 0
+    for mid in member_ids:
+        existing = await db.turma_membros.find_one({"turma_id": turma_id, "membro_id": mid})
+        if not existing:
+            link = TurmaMembroLink(turma_id=turma_id, membro_id=mid, tenant_id=tenant_id or "")
+            doc = link.model_dump()
+            doc['data_entrada'] = doc['data_entrada'].isoformat()
+            await db.turma_membros.insert_one(doc)
+            added += 1
+    return {"message": f"{added} aluno(s) adicionado(s)", "added": added}
+
+@api_router.delete("/church/turmas/{turma_id}/membros/{member_id}")
+async def remove_turma_membro(turma_id: str, member_id: str, current_user: dict = Depends(require_church_admin)):
+    result = await db.turma_membros.delete_one({"turma_id": turma_id, "membro_id": member_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Membro não encontrado nesta turma")
+    return {"message": "Aluno removido da turma"}
+
+
+# ==================== CHURCH ADMIN - PROGRESSO ENSINO ====================
+@api_router.post("/church/progresso-ensino")
+async def create_progresso(data: ProgressoEnsinoBase, current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    if not tenant_id:
+        raise HTTPException(status_code=400, detail="Tenant ID não encontrado")
+    progresso = ProgressoEnsino(**data.model_dump(), tenant_id=tenant_id)
+    doc = progresso.model_dump()
+    doc['data_atualizacao'] = doc['data_atualizacao'].isoformat()
+    await db.progresso_ensino.insert_one(doc)
+    return progresso
+
+@api_router.get("/church/progresso-ensino/membro/{member_id}")
+async def get_progresso_membro(member_id: str, current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    query = {"membro_id": member_id}
+    if tenant_id:
+        query["tenant_id"] = tenant_id
+    progressos = await db.progresso_ensino.find(query, {"_id": 0}).to_list(500)
+    for p in progressos:
+        if p.get("turma_id"):
+            turma = await db.turmas.find_one({"id": p["turma_id"]}, {"_id": 0, "nome": 1})
+            p["turma_nome"] = turma["nome"] if turma else None
+        if p.get("estudo_id"):
+            estudo = await db.estudos.find_one({"id": p["estudo_id"]}, {"_id": 0, "titulo": 1})
+            p["estudo_titulo"] = estudo["titulo"] if estudo else None
+    member = await db.members.find_one({"id": member_id}, {"_id": 0})
+    turma_links = await db.turma_membros.find({"membro_id": member_id}, {"_id": 0}).to_list(100)
+    turmas = []
+    for link in turma_links:
+        t = await db.turmas.find_one({"id": link["turma_id"]}, {"_id": 0, "nome": 1, "status": 1})
+        if t:
+            turmas.append(t)
+    return {"member": member, "progressos": progressos, "turmas": turmas}
+
+@api_router.put("/church/progresso-ensino/{progresso_id}")
+async def update_progresso(progresso_id: str, updates: Dict[str, Any], current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    query = {"id": progresso_id}
+    if tenant_id:
+        query["tenant_id"] = tenant_id
+    updates["data_atualizacao"] = datetime.now(timezone.utc).isoformat()
+    result = await db.progresso_ensino.update_one(query, {"$set": updates})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Progresso não encontrado")
+    return {"message": "Progresso atualizado"}
+
+@api_router.delete("/church/progresso-ensino/{progresso_id}")
+async def delete_progresso(progresso_id: str, current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    query = {"id": progresso_id}
+    if tenant_id:
+        query["tenant_id"] = tenant_id
+    result = await db.progresso_ensino.delete_one(query)
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Progresso não encontrado")
+    return {"message": "Progresso removido"}
+
+
+# ==================== CHURCH ADMIN - PAINEL ACADEMICO ====================
+@api_router.get("/church/ensino/painel-academico")
+async def get_painel_academico(current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    tq = {"tenant_id": tenant_id} if tenant_id else {}
+    total_escolas = await db.escolas.count_documents({**tq, "status": "active"})
+    total_turmas = await db.turmas.count_documents({**tq, "status": "active"})
+    total_turmas_concluidas = await db.turmas.count_documents({**tq, "status": "completed"})
+    total_estudos = await db.estudos.count_documents({**tq, "status": "active"})
+    total_alunos = len(await db.turma_membros.distinct("membro_id", tq if tq else {}))
+    total_progresso = await db.progresso_ensino.count_documents(tq)
+    total_concluidos = await db.progresso_ensino.count_documents({**tq, "status": "concluido"})
+    taxa_conclusao = round((total_concluidos / total_progresso * 100), 1) if total_progresso > 0 else 0
+    escolas = await db.escolas.find({**tq, "status": "active"}, {"_id": 0, "id": 1, "nome": 1}).to_list(100)
+    escola_stats = []
+    for e in escolas:
+        tc = await db.turmas.count_documents({"escola_id": e["id"]})
+        escola_stats.append({"nome": e["nome"], "turmas": tc})
+    turmas = await db.turmas.find(tq, {"_id": 0, "id": 1, "nome": 1}).to_list(200)
+    turma_ranking = []
+    for t in turmas:
+        ac = await db.turma_membros.count_documents({"turma_id": t["id"]})
+        turma_ranking.append({"id": t["id"], "nome": t["nome"], "aluno_count": ac})
+    turma_ranking.sort(key=lambda x: x["aluno_count"], reverse=True)
+    by_nivel = {}
+    for nivel in ["basico", "intermediario", "avancado"]:
+        c = await db.estudos.count_documents({**tq, "nivel": nivel})
+        if c > 0:
+            by_nivel[nivel] = c
+    return {
+        "total_escolas": total_escolas,
+        "total_turmas": total_turmas,
+        "total_turmas_concluidas": total_turmas_concluidas,
+        "total_estudos": total_estudos,
+        "total_alunos": total_alunos,
+        "taxa_conclusao": taxa_conclusao,
+        "total_progresso": total_progresso,
+        "total_concluidos": total_concluidos,
+        "escola_stats": escola_stats,
+        "turma_ranking": turma_ranking[:10],
+        "by_nivel": by_nivel,
+    }
+
+
 # Include router and middleware
 app.include_router(api_router)
 
