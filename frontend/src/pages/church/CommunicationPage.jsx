@@ -111,6 +111,18 @@ export default function CommunicationPage() {
         }
     };
 
+    const handleSaveTemplate = async () => {
+        setSavingTemplate(true);
+        try {
+            await churchAPI.updateBirthdayTemplate(birthdayTemplate);
+            toast.success('Template de aniversário salvo!');
+        } catch (e) {
+            toast.error('Erro ao salvar template');
+        } finally {
+            setSavingTemplate(false);
+        }
+    };
+
     const channelConfig = {
         email: { icon: Mail, label: 'Email', color: 'bg-blue-100 text-blue-700' },
         sms: { icon: Phone, label: 'SMS', color: 'bg-green-100 text-green-700' },
