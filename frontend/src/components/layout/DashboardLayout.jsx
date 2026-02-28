@@ -73,6 +73,15 @@ const defaultGroupSubItems = [
     { path: '/dashboard/groups/strategic', key: 'groups_strategic', defaultLabel: 'Painel Estratégico', icon: BarChart3 },
 ];
 
+const defaultTeachingSubItems = [
+    { path: '/dashboard/teaching/studies', key: 'teaching_studies', defaultLabel: 'Estudos', icon: BookOpen, exact: true },
+    { path: '/dashboard/teaching/schools', key: 'teaching_schools', defaultLabel: 'Escolas', icon: School },
+    { path: '/dashboard/teaching/classes', key: 'teaching_classes', defaultLabel: 'Turmas', icon: Users },
+    { path: '/dashboard/teaching/tracking', key: 'teaching_tracking', defaultLabel: 'Acompanhamento', icon: ClipboardList },
+    { path: '/dashboard/teaching/export', key: 'teaching_export', defaultLabel: 'Exportar', icon: Download },
+    { path: '/dashboard/teaching/dashboard', key: 'teaching_dashboard', defaultLabel: 'Painel Acadêmico', icon: BarChart3 },
+];
+
 const churchNavBase = [
     { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, exact: true },
     { path: '/dashboard/departments', label: 'Departamentos', icon: Church },
