@@ -62,7 +62,7 @@ const defaultMemberSubItems = [
 
 const churchNavBase = [
     { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, exact: true },
-    { path: '/dashboard/ministries', label: 'Ministérios', icon: Church },
+    { path: '/dashboard/departments', label: 'Departamentos', icon: Church },
     { path: '/dashboard/events', label: 'Eventos', icon: Calendar },
     { path: '/dashboard/financial', label: 'Financeiro', icon: DollarSign },
     { path: '/dashboard/discipleship', label: 'Discipulado', icon: BookOpen },
