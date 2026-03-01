@@ -37,6 +37,14 @@ import PainelAcademico from "./pages/church/teaching/PainelAcademico";
 
 import EventsPage from "./pages/church/EventsPage";
 
+// Agenda Pages
+import CalendarioPage from "./pages/church/agenda/CalendarioPage";
+import EventosPage from "./pages/church/agenda/EventosPage";
+import MuralAvisosPage from "./pages/church/agenda/MuralAvisosPage";
+import AnotacoesPage from "./pages/church/agenda/AnotacoesPage";
+import NotificacoesPage from "./pages/church/agenda/NotificacoesPage";
+import AgendaExportarPage from "./pages/church/agenda/AgendaExportarPage";
+
 // Financial Pages
 import FinResumo from "./pages/church/financial/FinResumo";
 import FinTransacoes from "./pages/church/financial/FinTransacoes";
