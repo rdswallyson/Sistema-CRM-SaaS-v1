@@ -152,6 +152,43 @@ export const churchAPI = {
 
     getPainelAcademico: () => api.get('/church/ensino/painel-academico'),
 
+    // Financial
+    getFinContas: () => api.get('/church/fin/contas'),
+    createFinConta: (data) => api.post('/church/fin/contas', data),
+    updateFinConta: (id, data) => api.put(`/church/fin/contas/${id}`, data),
+    deleteFinConta: (id) => api.delete(`/church/fin/contas/${id}`),
+
+    getFinCategorias: (params) => api.get('/church/fin/categorias', { params }),
+    createFinCategoria: (data) => api.post('/church/fin/categorias', data),
+    updateFinCategoria: (id, data) => api.put(`/church/fin/categorias/${id}`, data),
+    deleteFinCategoria: (id) => api.delete(`/church/fin/categorias/${id}`),
+
+    getFinCentrosCusto: () => api.get('/church/fin/centros-custo'),
+    createFinCentro: (data) => api.post('/church/fin/centros-custo', data),
+    updateFinCentro: (id, data) => api.put(`/church/fin/centros-custo/${id}`, data),
+    deleteFinCentro: (id) => api.delete(`/church/fin/centros-custo/${id}`),
+
+    getFinContatos: (params) => api.get('/church/fin/contatos', { params }),
+    createFinContato: (data) => api.post('/church/fin/contatos', data),
+    updateFinContato: (id, data) => api.put(`/church/fin/contatos/${id}`, data),
+    deleteFinContato: (id) => api.delete(`/church/fin/contatos/${id}`),
+
+    getFinTransacoes: (params) => api.get('/church/fin/transacoes', { params }),
+    getFinTransacao: (id) => api.get(`/church/fin/transacoes/${id}`),
+    createFinTransacao: (data) => api.post('/church/fin/transacoes', data),
+    updateFinTransacao: (id, data) => api.put(`/church/fin/transacoes/${id}`, data),
+    deleteFinTransacao: (id) => api.delete(`/church/fin/transacoes/${id}`),
+
+    getFinLogs: () => api.get('/church/fin/logs'),
+
+    getFinPeriodosBloqueados: () => api.get('/church/fin/periodos-bloqueados'),
+    createFinPeriodoBloqueado: (data) => api.post('/church/fin/periodos-bloqueados', data),
+    deleteFinPeriodoBloqueado: (id) => api.delete(`/church/fin/periodos-bloqueados/${id}`),
+
+    getFinResumo: () => api.get('/church/fin/resumo'),
+    getFinPainelEstrategico: () => api.get('/church/fin/painel-estrategico'),
+    importarTransacoes: (data) => api.post('/church/fin/importar', data),
+
     // Ministries (legacy)
     getMinistries: () => api.get('/church/ministries'),
     createMinistry: (data) => api.post('/church/ministries', data),
