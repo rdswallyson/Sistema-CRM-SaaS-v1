@@ -102,7 +102,7 @@ export default function CalendarioPage() {
                     <Select value={filterDept} onValueChange={setFilterDept}>
                         <SelectTrigger className="w-[180px]"><SelectValue placeholder="Departamento" /></SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="">Todos</SelectItem>
+                            <SelectItem value="_all_">Todos</SelectItem>
                             {departments.map(d => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}
                         </SelectContent>
                     </Select>
