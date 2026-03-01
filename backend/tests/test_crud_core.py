@@ -188,13 +188,13 @@ class TestEvents:
 
     def test_create_event(self, headers):
         """Create a new event"""
-        future_date = (datetime.now() + timedelta(days=7)).isoformat()
+        future_date = (datetime.now() + timedelta(days=7)).strftime("%Y-%m-%d")
         payload = {
             "title": f"TEST_Event_{int(time.time())}",
             "description": "Test event for automated tests",
-            "date": future_date,
-            "location": "Test Location",
-            "event_type": "celebration"
+            "event_date": future_date,
+            "event_time": "19:00",
+            "location": "Test Location"
         }
         response = requests.post(
             f"{BASE_URL}/api/church/events",
