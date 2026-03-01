@@ -151,6 +151,9 @@ export default function DashboardLayout({ variant = 'church' }) {
         if (location.pathname.startsWith('/dashboard/financial')) {
             setFinancialExpanded(true);
         }
+        if (location.pathname.startsWith('/dashboard/agenda')) {
+            setAgendaExpanded(true);
+        }
     }, [location.pathname]);
 
     const fetchMenuLabels = async () => {
