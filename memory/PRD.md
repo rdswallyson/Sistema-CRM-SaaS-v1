@@ -24,15 +24,17 @@ Multi-tenant SaaS platform for church management ("Firmes"), supporting Super Ad
   - Cartao do membro (QR code), Aniversariantes, Relatorios, Editar nomes do menu
 - **Departments Module:** Card-based UI, member management, dashboard interno
 - **Groups Module (7 pages - TESTED Feb 28, 2026):**
-  - Ver todos: Card grid with search, filters (status/category/department), dropdown actions
-  - Adicionar grupo: Form with name, description, category, department, leader, members selection
-  - Categorias de grupos: CRUD with color picker
-  - Relatorios: KPIs, ranking, full table, CSV export
-  - Exportar: Select-based CSV export (all groups or specific group members)
-  - Painel Estrategico: KPIs, bar charts by category/department, top 10 ranking
-  - Detalhe do grupo: Info cards, members table with remove, CSV export
+  - Ver todos, Adicionar grupo, Categorias de grupos, Relatorios, Exportar, Painel Estrategico, Detalhe do grupo
+- **Ensino Module (7 pages - TESTED Feb 28, 2026):**
+  - Estudos, Escolas, Turmas, Acompanhamento Pessoal, Exportar, Painel Academico
+  - Collections: estudos, escolas, turmas, turma_membros, progresso_ensino
+- **Financial Module (12 pages - TESTED Mar 1, 2026):**
+  - Resumo (Dashboard), Transacoes, Relatorios, Historico (Audit Logs)
+  - Categorias, Contas, Contatos, Centros de Custos
+  - Bloqueio de Periodos, Importar CSV, Exportar CSV, Painel Estrategico
+  - Business rules: confirmed tx only cancelled, negative values rejected, blocked periods, audit logging
+  - Collections: contas_financeiras, categorias_financeiras, centros_custos, contatos_financeiros, transacoes, financeiro_logs, periodos_bloqueados
 - **Events:** CRUD with edit/delete, check-in
-- **Financial:** Donations tracking (tithe, offering, special)
 - **Discipleship:** Trails with progress tracking, mentorship
 - **Communication:** Email/SMS/WhatsApp (placeholder), birthday auto-greeting
 - **Settings:** Church customization
@@ -40,45 +42,42 @@ Multi-tenant SaaS platform for church management ("Firmes"), supporting Super Ad
 ### Landing Page
 - Conversion-focused institutional site with plans/FAQ
 
-## Database Collections
-tenants, users, members, departments, department_members, events, donations, plans,
-discipleship_trails, discipleship_progress, member_categories, member_positions,
-custom_fields, menu_personalizacoes, communication_logs,
-groups, group_members, group_categories
-
 ## Key API Endpoints
 - Auth: POST /api/auth/login, POST /api/auth/register
 - Members: /api/church/members (CRUD + filters)
 - Departments: /api/church/departments (CRUD), /api/church/departments/{id}/members
-- Groups: /api/church/groups (CRUD + filters), /api/church/groups/{id}/members
+- Groups: /api/church/groups (CRUD), /api/church/groups/{id}/members, /api/church/groups/strategic-dashboard
 - Group Categories: /api/church/group-categories (CRUD)
-- Strategic Dashboard: /api/church/groups/strategic-dashboard
-- Communication: /api/church/birthday-template, /api/church/send-birthday-wishes
+- Ensino: /api/church/estudos, /api/church/escolas, /api/church/turmas, /api/church/turmas/{id}/membros
+- Progresso: /api/church/progresso-ensino, /api/church/ensino/painel-academico
+- Financial: /api/church/fin/contas, /api/church/fin/categorias, /api/church/fin/centros-custo
+- Financial: /api/church/fin/contatos, /api/church/fin/transacoes, /api/church/fin/logs
+- Financial: /api/church/fin/periodos-bloqueados, /api/church/fin/resumo, /api/church/fin/painel-estrategico
+- Financial: /api/church/fin/importar
 
 ## Credentials
 - Super Admin: admin@firmes.com / admin123
 - Church Admin: admin.teste.154017@teste.com / admin123
-- Tenant ID: 1ffbba66-d4f9-4efe-8e79-59dff1e95285
 
 ## What's Completed
-- [x] Full-stack scaffolding
-- [x] Multi-tenant architecture with JWT auth
-- [x] All core modules (Members, Events, Financial, Discipleship, Communication)
-- [x] Branding "Firmes" with sky blue theme
+- [x] Full-stack scaffolding + Multi-tenant architecture with JWT auth
+- [x] All core modules (Members, Events, Financial-basic, Discipleship, Communication)
 - [x] Members Module Evolution (9 sub-pages) - Feb 28, 2026
 - [x] Birthday notifications + auto-greeting system - Feb 28, 2026
 - [x] Departments module (replaces Ministerios) - Feb 28, 2026
-- [x] Groups module (7 pages, fully tested 23/23 backend + all frontend) - Feb 28, 2026
+- [x] Groups module (7 pages, 23/23 backend tests) - Feb 28, 2026
+- [x] Ensino module (7 pages, 34/34 backend tests) - Feb 28, 2026
+- [x] Financial module (12 pages, 32/32 backend tests) - Mar 1, 2026
 
 ## Pending / Backlog
-- [ ] Full System Integration Audit (all modules clickable/functional)
+- [ ] Full System Integration Audit (all modules functional)
 - [ ] Edit functionality review for all modules
 - [ ] Gestao de Suporte e Tickets (Super Admin)
 - [ ] Heatmap de presenca
 - [ ] Analise preditiva de evasao
 - [ ] WhatsApp/Twilio real integration
 - [ ] Gamification and Certificates
-- [ ] White-Labeling (custom domains, editable prices)
+- [ ] White-Labeling (custom domains)
 - [ ] Mobile App
-- [ ] Advanced AI features (behavioral analysis)
+- [ ] Advanced AI features
 - [ ] Refactor server.py into modular structure
