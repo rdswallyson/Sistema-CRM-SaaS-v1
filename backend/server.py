@@ -292,6 +292,92 @@ class ProgressoEnsino(ProgressoEnsinoBase):
     tenant_id: str
     data_atualizacao: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
+# ==================== FINANCIAL MODELS ====================
+class ContaFinanceiraBase(BaseModel):
+    nome: str
+    tipo: str = "banco"  # caixa, banco, carteira_digital
+    saldo_inicial: float = 0.0
+    status: str = "active"
+
+class ContaFinanceira(ContaFinanceiraBase):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    tenant_id: str
+    saldo_atual: float = 0.0
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class CategoriaFinanceiraBase(BaseModel):
+    nome: str
+    tipo: str = "receita"  # receita, despesa
+    cor: str = "#6366f1"
+    status: str = "active"
+
+class CategoriaFinanceira(CategoriaFinanceiraBase):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    tenant_id: str
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class CentroCustoBase(BaseModel):
+    nome: str
+    tipo: str = "departamento"  # departamento, projeto, evento
+    referencia_id: Optional[str] = None
+    status: str = "active"
+
+class CentroCusto(CentroCustoBase):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    tenant_id: str
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class ContatoFinanceiroBase(BaseModel):
+    nome: str
+    tipo: str = "contribuinte"  # fornecedor, contribuinte, parceiro
+    email: Optional[str] = None
+    telefone: Optional[str] = None
+    documento: Optional[str] = None
+    notas: Optional[str] = None
+    status: str = "active"
+
+class ContatoFinanceiro(ContatoFinanceiroBase):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    tenant_id: str
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class TransacaoBase(BaseModel):
+    tipo: str = "receita"  # receita, despesa, transferencia
+    valor: float
+    data: str
+    conta_id: Optional[str] = None
+    conta_destino_id: Optional[str] = None
+    categoria_id: Optional[str] = None
+    centro_custo_id: Optional[str] = None
+    departamento_id: Optional[str] = None
+    grupo_id: Optional[str] = None
+    membro_id: Optional[str] = None
+    contato_id: Optional[str] = None
+    descricao: Optional[str] = None
+    anexo: Optional[str] = None
+    status: str = "confirmado"  # pendente, confirmado, cancelado
+
+class Transacao(TransacaoBase):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    tenant_id: str
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class PeriodoBloqueadoBase(BaseModel):
+    ano: int
+    mes: int
+
+class PeriodoBloqueado(PeriodoBloqueadoBase):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    tenant_id: str
+    bloqueado_por: Optional[str] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
 class EventBase(BaseModel):
     title: str
     description: Optional[str] = None
