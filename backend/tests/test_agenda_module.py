@@ -440,6 +440,10 @@ class TestAgendaModule:
                                       headers=self.get_headers())
             # May return 200 or 404 if already cleaned up
             print("Test member cleanup attempted")
+        if hasattr(TestAgendaModule, 'paid_test_member_id') and TestAgendaModule.paid_test_member_id:
+            requests.delete(f"{BASE_URL}/api/church/members/{TestAgendaModule.paid_test_member_id}", 
+                           headers=self.get_headers())
+            print("Paid test member cleanup attempted")
 
 
 if __name__ == "__main__":
