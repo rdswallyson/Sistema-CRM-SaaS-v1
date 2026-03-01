@@ -36,6 +36,20 @@ import ExportarEnsinoPage from "./pages/church/teaching/ExportarEnsinoPage";
 import PainelAcademico from "./pages/church/teaching/PainelAcademico";
 
 import EventsPage from "./pages/church/EventsPage";
+
+// Financial Pages
+import FinResumo from "./pages/church/financial/FinResumo";
+import FinTransacoes from "./pages/church/financial/FinTransacoes";
+import FinRelatorios from "./pages/church/financial/FinRelatorios";
+import FinHistorico from "./pages/church/financial/FinHistorico";
+import FinCategorias from "./pages/church/financial/FinCategorias";
+import FinContas from "./pages/church/financial/FinContas";
+import FinContatos from "./pages/church/financial/FinContatos";
+import FinCentrosCusto from "./pages/church/financial/FinCentrosCusto";
+import FinBloqueio from "./pages/church/financial/FinBloqueio";
+import FinImportar from "./pages/church/financial/FinImportar";
+import FinExportar from "./pages/church/financial/FinExportar";
+import FinPainelEstrategico from "./pages/church/financial/FinPainelEstrategico";
 import FinancialPage from "./pages/church/FinancialPage";
 import CommunicationPage from "./pages/church/CommunicationPage";
 import DiscipleshipPage from "./pages/church/DiscipleshipPage";
