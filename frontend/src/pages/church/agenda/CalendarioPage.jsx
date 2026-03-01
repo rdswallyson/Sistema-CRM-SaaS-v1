@@ -99,7 +99,7 @@ export default function CalendarioPage() {
                     </SelectContent>
                 </Select>
                 {departments.length > 0 && (
-                    <Select value={filterDept} onValueChange={setFilterDept}>
+                    <Select value={filterDept || '_all_'} onValueChange={v => setFilterDept(v === '_all_' ? '' : v)}>
                         <SelectTrigger className="w-[180px]"><SelectValue placeholder="Departamento" /></SelectTrigger>
                         <SelectContent>
                             <SelectItem value="_all_">Todos</SelectItem>
