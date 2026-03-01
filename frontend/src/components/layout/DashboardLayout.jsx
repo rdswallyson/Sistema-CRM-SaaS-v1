@@ -349,7 +349,7 @@ export default function DashboardLayout({ variant = 'church' }) {
                             </div>
 
                             {/* Other nav items */}
-                            {navItems.filter(i => i.path !== '/dashboard').map((item) => {
+                            {navItems.filter(i => i.path !== '/dashboard').filter(i => !i.path.includes('/dashboard/financial')).map((item) => {
                                 const Icon = item.icon;
                                 const active = isActive(item);
                                 return (
