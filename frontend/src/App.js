@@ -174,7 +174,20 @@ const AppRoutes = () => {
                 <Route path="teaching/dashboard" element={<PainelAcademico />} />
                 
                 <Route path="events" element={<EventsPage />} />
-                <Route path="financial" element={<FinancialPage />} />
+                
+                {/* Financial sub-routes */}
+                <Route path="financial" element={<FinResumo />} />
+                <Route path="financial/transactions" element={<FinTransacoes />} />
+                <Route path="financial/reports" element={<FinRelatorios />} />
+                <Route path="financial/history" element={<FinHistorico />} />
+                <Route path="financial/categories" element={<FinCategorias />} />
+                <Route path="financial/accounts" element={<FinContas />} />
+                <Route path="financial/contacts" element={<FinContatos />} />
+                <Route path="financial/cost-centers" element={<FinCentrosCusto />} />
+                <Route path="financial/lock-periods" element={<FinBloqueio />} />
+                <Route path="financial/import" element={<FinImportar />} />
+                <Route path="financial/export" element={<FinExportar />} />
+                <Route path="financial/strategic" element={<FinPainelEstrategico />} />
                 <Route path="discipleship" element={<DiscipleshipPage />} />
                 <Route path="communication" element={<CommunicationPage />} />
                 <Route path="settings" element={<SettingsPage />} />
