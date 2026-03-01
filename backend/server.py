@@ -1458,6 +1458,516 @@ async def event_checkin(event_id: str, member_id: str, current_user: dict = Depe
     
     return {"message": "Check-in realizado com sucesso", "attendance_id": attendance.id}
 
+
+# ==================== FINANCIAL - HELPER: LOG ====================
+async def log_financeiro(tenant_id: str, usuario: str, acao: str, transacao_id: str = None, dados_antes: dict = None, dados_depois: dict = None):
+    log_doc = {
+        "id": str(uuid.uuid4()),
+        "tenant_id": tenant_id,
+        "usuario": usuario,
+        "acao": acao,
+        "transacao_id": transacao_id,
+        "dados_antes": dados_antes,
+        "dados_depois": dados_depois,
+        "data_hora": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.financeiro_logs.insert_one(log_doc)
+
+async def check_periodo_bloqueado(tenant_id: str, data_str: str):
+    if not data_str:
+        return False
+    try:
+        parts = data_str.split("-")
+        ano, mes = int(parts[0]), int(parts[1])
+        blocked = await db.periodos_bloqueados.find_one({"tenant_id": tenant_id, "ano": ano, "mes": mes}, {"_id": 0})
+        return blocked is not None
+    except Exception:
+        return False
+
+
+# ==================== FINANCIAL - CONTAS ====================
+@api_router.post("/church/fin/contas")
+async def create_conta(data: ContaFinanceiraBase, current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    if not tenant_id:
+        raise HTTPException(status_code=400, detail="Tenant ID não encontrado")
+    conta = ContaFinanceira(**data.model_dump(), tenant_id=tenant_id, saldo_atual=data.saldo_inicial)
+    doc = conta.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    await db.contas_financeiras.insert_one(doc)
+    await log_financeiro(tenant_id, current_user.get('email', ''), "criar_conta", dados_depois={"nome": data.nome})
+    return conta
+
+@api_router.get("/church/fin/contas")
+async def list_contas(current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    query = {"tenant_id": tenant_id} if tenant_id else {}
+    return await db.contas_financeiras.find(query, {"_id": 0}).sort("created_at", -1).to_list(100)
+
+@api_router.put("/church/fin/contas/{conta_id}")
+async def update_conta(conta_id: str, updates: Dict[str, Any], current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    query = {"id": conta_id}
+    if tenant_id:
+        query["tenant_id"] = tenant_id
+    old = await db.contas_financeiras.find_one(query, {"_id": 0})
+    if not old:
+        raise HTTPException(status_code=404, detail="Conta não encontrada")
+    safe = {k: v for k, v in updates.items() if k in ("nome", "tipo", "status")}
+    await db.contas_financeiras.update_one(query, {"$set": safe})
+    await log_financeiro(tenant_id, current_user.get('email', ''), "atualizar_conta", dados_antes={"nome": old.get("nome")}, dados_depois=safe)
+    return {"message": "Conta atualizada"}
+
+@api_router.delete("/church/fin/contas/{conta_id}")
+async def delete_conta(conta_id: str, current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    query = {"id": conta_id}
+    if tenant_id:
+        query["tenant_id"] = tenant_id
+    has_tx = await db.transacoes.find_one({"$or": [{"conta_id": conta_id}, {"conta_destino_id": conta_id}]})
+    if has_tx:
+        raise HTTPException(status_code=400, detail="Conta possui transações vinculadas. Inative-a em vez de excluir.")
+    result = await db.contas_financeiras.delete_one(query)
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Conta não encontrada")
+    await log_financeiro(tenant_id, current_user.get('email', ''), "excluir_conta", dados_antes={"conta_id": conta_id})
+    return {"message": "Conta removida"}
+
+
+# ==================== FINANCIAL - CATEGORIAS ====================
+@api_router.post("/church/fin/categorias")
+async def create_cat_fin(data: CategoriaFinanceiraBase, current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    if not tenant_id:
+        raise HTTPException(status_code=400, detail="Tenant ID não encontrado")
+    cat = CategoriaFinanceira(**data.model_dump(), tenant_id=tenant_id)
+    doc = cat.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    await db.categorias_financeiras.insert_one(doc)
+    return cat
+
+@api_router.get("/church/fin/categorias")
+async def list_cat_fin(tipo: Optional[str] = None, current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    query = {"tenant_id": tenant_id} if tenant_id else {}
+    if tipo and tipo != "all":
+        query["tipo"] = tipo
+    return await db.categorias_financeiras.find(query, {"_id": 0}).sort("nome", 1).to_list(200)
+
+@api_router.put("/church/fin/categorias/{cat_id}")
+async def update_cat_fin(cat_id: str, updates: Dict[str, Any], current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    query = {"id": cat_id}
+    if tenant_id:
+        query["tenant_id"] = tenant_id
+    result = await db.categorias_financeiras.update_one(query, {"$set": updates})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Categoria não encontrada")
+    return {"message": "Categoria atualizada"}
+
+@api_router.delete("/church/fin/categorias/{cat_id}")
+async def delete_cat_fin(cat_id: str, current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    query = {"id": cat_id}
+    if tenant_id:
+        query["tenant_id"] = tenant_id
+    result = await db.categorias_financeiras.delete_one(query)
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Categoria não encontrada")
+    return {"message": "Categoria removida"}
+
+
+# ==================== FINANCIAL - CENTROS DE CUSTO ====================
+@api_router.post("/church/fin/centros-custo")
+async def create_centro(data: CentroCustoBase, current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    if not tenant_id:
+        raise HTTPException(status_code=400, detail="Tenant ID não encontrado")
+    cc = CentroCusto(**data.model_dump(), tenant_id=tenant_id)
+    doc = cc.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    await db.centros_custos.insert_one(doc)
+    return cc
+
+@api_router.get("/church/fin/centros-custo")
+async def list_centros(current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    query = {"tenant_id": tenant_id} if tenant_id else {}
+    return await db.centros_custos.find(query, {"_id": 0}).sort("nome", 1).to_list(200)
+
+@api_router.put("/church/fin/centros-custo/{cc_id}")
+async def update_centro(cc_id: str, updates: Dict[str, Any], current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    query = {"id": cc_id}
+    if tenant_id:
+        query["tenant_id"] = tenant_id
+    result = await db.centros_custos.update_one(query, {"$set": updates})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Centro de custo não encontrado")
+    return {"message": "Centro de custo atualizado"}
+
+@api_router.delete("/church/fin/centros-custo/{cc_id}")
+async def delete_centro(cc_id: str, current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    query = {"id": cc_id}
+    if tenant_id:
+        query["tenant_id"] = tenant_id
+    result = await db.centros_custos.delete_one(query)
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Centro de custo não encontrado")
+    return {"message": "Centro de custo removido"}
+
+
+# ==================== FINANCIAL - CONTATOS ====================
+@api_router.post("/church/fin/contatos")
+async def create_contato(data: ContatoFinanceiroBase, current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    if not tenant_id:
+        raise HTTPException(status_code=400, detail="Tenant ID não encontrado")
+    c = ContatoFinanceiro(**data.model_dump(), tenant_id=tenant_id)
+    doc = c.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    await db.contatos_financeiros.insert_one(doc)
+    return c
+
+@api_router.get("/church/fin/contatos")
+async def list_contatos(tipo: Optional[str] = None, current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    query = {"tenant_id": tenant_id} if tenant_id else {}
+    if tipo and tipo != "all":
+        query["tipo"] = tipo
+    return await db.contatos_financeiros.find(query, {"_id": 0}).sort("nome", 1).to_list(500)
+
+@api_router.put("/church/fin/contatos/{c_id}")
+async def update_contato(c_id: str, updates: Dict[str, Any], current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    query = {"id": c_id}
+    if tenant_id:
+        query["tenant_id"] = tenant_id
+    result = await db.contatos_financeiros.update_one(query, {"$set": updates})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Contato não encontrado")
+    return {"message": "Contato atualizado"}
+
+@api_router.delete("/church/fin/contatos/{c_id}")
+async def delete_contato(c_id: str, current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    query = {"id": c_id}
+    if tenant_id:
+        query["tenant_id"] = tenant_id
+    result = await db.contatos_financeiros.delete_one(query)
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Contato não encontrado")
+    return {"message": "Contato removido"}
+
+
+# ==================== FINANCIAL - TRANSACOES ====================
+@api_router.post("/church/fin/transacoes")
+async def create_transacao(data: TransacaoBase, current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    if not tenant_id:
+        raise HTTPException(status_code=400, detail="Tenant ID não encontrado")
+    if data.valor <= 0:
+        raise HTTPException(status_code=400, detail="Valor deve ser positivo")
+    blocked = await check_periodo_bloqueado(tenant_id, data.data)
+    if blocked:
+        raise HTTPException(status_code=400, detail="Periodo bloqueado. Não é possível criar transações neste mês.")
+    tx = Transacao(**data.model_dump(), tenant_id=tenant_id)
+    doc = tx.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    await db.transacoes.insert_one(doc)
+    # Update account balances
+    if data.status == "confirmado":
+        if data.tipo == "receita" and data.conta_id:
+            await db.contas_financeiras.update_one({"id": data.conta_id}, {"$inc": {"saldo_atual": data.valor}})
+        elif data.tipo == "despesa" and data.conta_id:
+            await db.contas_financeiras.update_one({"id": data.conta_id}, {"$inc": {"saldo_atual": -data.valor}})
+        elif data.tipo == "transferencia":
+            if data.conta_id:
+                await db.contas_financeiras.update_one({"id": data.conta_id}, {"$inc": {"saldo_atual": -data.valor}})
+            if data.conta_destino_id:
+                await db.contas_financeiras.update_one({"id": data.conta_destino_id}, {"$inc": {"saldo_atual": data.valor}})
+    await log_financeiro(tenant_id, current_user.get('email', ''), "criar_transacao", transacao_id=tx.id, dados_depois={"tipo": data.tipo, "valor": data.valor})
+    return tx
+
+@api_router.get("/church/fin/transacoes")
+async def list_transacoes(
+    tipo: Optional[str] = None, status: Optional[str] = None,
+    conta_id: Optional[str] = None, categoria_id: Optional[str] = None,
+    centro_custo_id: Optional[str] = None, data_inicio: Optional[str] = None,
+    data_fim: Optional[str] = None, search: Optional[str] = None,
+    current_user: dict = Depends(require_church_admin),
+):
+    tenant_id = current_user.get('tenant_id')
+    query = {"tenant_id": tenant_id} if tenant_id else {}
+    if tipo and tipo != "all":
+        query["tipo"] = tipo
+    if status and status != "all":
+        query["status"] = status
+    if conta_id:
+        query["$or"] = [{"conta_id": conta_id}, {"conta_destino_id": conta_id}]
+    if categoria_id:
+        query["categoria_id"] = categoria_id
+    if centro_custo_id:
+        query["centro_custo_id"] = centro_custo_id
+    if data_inicio:
+        query.setdefault("data", {})["$gte"] = data_inicio
+    if data_fim:
+        query.setdefault("data", {})["$lte"] = data_fim
+    if search:
+        query["descricao"] = {"$regex": search, "$options": "i"}
+    txs = await db.transacoes.find(query, {"_id": 0}).sort("data", -1).to_list(2000)
+    # Enrich
+    for t in txs:
+        if t.get("conta_id"):
+            c = await db.contas_financeiras.find_one({"id": t["conta_id"]}, {"_id": 0, "nome": 1})
+            t["conta_nome"] = c["nome"] if c else None
+        if t.get("conta_destino_id"):
+            c = await db.contas_financeiras.find_one({"id": t["conta_destino_id"]}, {"_id": 0, "nome": 1})
+            t["conta_destino_nome"] = c["nome"] if c else None
+        if t.get("categoria_id"):
+            cat = await db.categorias_financeiras.find_one({"id": t["categoria_id"]}, {"_id": 0, "nome": 1, "cor": 1})
+            t["categoria_nome"] = cat["nome"] if cat else None
+            t["categoria_cor"] = cat["cor"] if cat else None
+        if t.get("membro_id"):
+            m = await db.members.find_one({"id": t["membro_id"]}, {"_id": 0, "name": 1})
+            t["membro_nome"] = m["name"] if m else None
+    return txs
+
+@api_router.get("/church/fin/transacoes/{tx_id}")
+async def get_transacao(tx_id: str, current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    query = {"id": tx_id}
+    if tenant_id:
+        query["tenant_id"] = tenant_id
+    tx = await db.transacoes.find_one(query, {"_id": 0})
+    if not tx:
+        raise HTTPException(status_code=404, detail="Transação não encontrada")
+    return tx
+
+@api_router.put("/church/fin/transacoes/{tx_id}")
+async def update_transacao(tx_id: str, updates: Dict[str, Any], current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    query = {"id": tx_id}
+    if tenant_id:
+        query["tenant_id"] = tenant_id
+    old = await db.transacoes.find_one(query, {"_id": 0})
+    if not old:
+        raise HTTPException(status_code=404, detail="Transação não encontrada")
+    if old.get("status") == "confirmado" and updates.get("status") != "cancelado":
+        raise HTTPException(status_code=400, detail="Transação confirmada só pode ser cancelada (estorno)")
+    blocked = await check_periodo_bloqueado(tenant_id, old.get("data", ""))
+    if blocked:
+        raise HTTPException(status_code=400, detail="Periodo bloqueado")
+    await db.transacoes.update_one(query, {"$set": updates})
+    # If cancelling a confirmed transaction, reverse balance
+    if old.get("status") == "confirmado" and updates.get("status") == "cancelado":
+        val = old.get("valor", 0)
+        if old.get("tipo") == "receita" and old.get("conta_id"):
+            await db.contas_financeiras.update_one({"id": old["conta_id"]}, {"$inc": {"saldo_atual": -val}})
+        elif old.get("tipo") == "despesa" and old.get("conta_id"):
+            await db.contas_financeiras.update_one({"id": old["conta_id"]}, {"$inc": {"saldo_atual": val}})
+        elif old.get("tipo") == "transferencia":
+            if old.get("conta_id"):
+                await db.contas_financeiras.update_one({"id": old["conta_id"]}, {"$inc": {"saldo_atual": val}})
+            if old.get("conta_destino_id"):
+                await db.contas_financeiras.update_one({"id": old["conta_destino_id"]}, {"$inc": {"saldo_atual": -val}})
+    await log_financeiro(tenant_id, current_user.get('email', ''), "atualizar_transacao", transacao_id=tx_id, dados_antes={"status": old.get("status")}, dados_depois=updates)
+    return {"message": "Transação atualizada"}
+
+@api_router.delete("/church/fin/transacoes/{tx_id}")
+async def delete_transacao(tx_id: str, current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    query = {"id": tx_id}
+    if tenant_id:
+        query["tenant_id"] = tenant_id
+    old = await db.transacoes.find_one(query, {"_id": 0})
+    if not old:
+        raise HTTPException(status_code=404, detail="Transação não encontrada")
+    if old.get("status") == "confirmado":
+        raise HTTPException(status_code=400, detail="Transação confirmada não pode ser excluída. Cancele-a primeiro.")
+    await db.transacoes.delete_one(query)
+    await log_financeiro(tenant_id, current_user.get('email', ''), "excluir_transacao", transacao_id=tx_id)
+    return {"message": "Transação removida"}
+
+
+# ==================== FINANCIAL - LOGS ====================
+@api_router.get("/church/fin/logs")
+async def list_fin_logs(current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    query = {"tenant_id": tenant_id} if tenant_id else {}
+    return await db.financeiro_logs.find(query, {"_id": 0}).sort("data_hora", -1).to_list(500)
+
+
+# ==================== FINANCIAL - PERIODOS BLOQUEADOS ====================
+@api_router.post("/church/fin/periodos-bloqueados")
+async def bloquear_periodo(data: PeriodoBloqueadoBase, current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    if not tenant_id:
+        raise HTTPException(status_code=400, detail="Tenant ID não encontrado")
+    existing = await db.periodos_bloqueados.find_one({"tenant_id": tenant_id, "ano": data.ano, "mes": data.mes})
+    if existing:
+        raise HTTPException(status_code=400, detail="Periodo já bloqueado")
+    pb = PeriodoBloqueado(**data.model_dump(), tenant_id=tenant_id, bloqueado_por=current_user.get('email', ''))
+    doc = pb.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    await db.periodos_bloqueados.insert_one(doc)
+    await log_financeiro(tenant_id, current_user.get('email', ''), "bloquear_periodo", dados_depois={"ano": data.ano, "mes": data.mes})
+    return pb
+
+@api_router.get("/church/fin/periodos-bloqueados")
+async def list_periodos_bloqueados(current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    query = {"tenant_id": tenant_id} if tenant_id else {}
+    return await db.periodos_bloqueados.find(query, {"_id": 0}).sort([("ano", -1), ("mes", -1)]).to_list(100)
+
+@api_router.delete("/church/fin/periodos-bloqueados/{pb_id}")
+async def desbloquear_periodo(pb_id: str, current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    query = {"id": pb_id}
+    if tenant_id:
+        query["tenant_id"] = tenant_id
+    old = await db.periodos_bloqueados.find_one(query, {"_id": 0})
+    if not old:
+        raise HTTPException(status_code=404, detail="Periodo não encontrado")
+    await db.periodos_bloqueados.delete_one(query)
+    await log_financeiro(tenant_id, current_user.get('email', ''), "desbloquear_periodo", dados_antes={"ano": old.get("ano"), "mes": old.get("mes")})
+    return {"message": "Periodo desbloqueado"}
+
+
+# ==================== FINANCIAL - RESUMO & PAINEL ====================
+@api_router.get("/church/fin/resumo")
+async def get_fin_resumo(current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    tq = {"tenant_id": tenant_id} if tenant_id else {}
+    contas = await db.contas_financeiras.find({**tq, "status": "active"}, {"_id": 0}).to_list(100)
+    saldo_total = sum(c.get("saldo_atual", 0) for c in contas)
+    now = datetime.now(timezone.utc)
+    mes_atual = f"{now.year}-{now.month:02d}"
+    receitas_mes = 0
+    despesas_mes = 0
+    txs_mes = await db.transacoes.find({**tq, "status": "confirmado", "data": {"$regex": f"^{mes_atual}"}}, {"_id": 0, "tipo": 1, "valor": 1}).to_list(5000)
+    for t in txs_mes:
+        if t["tipo"] == "receita":
+            receitas_mes += t["valor"]
+        elif t["tipo"] == "despesa":
+            despesas_mes += t["valor"]
+    # By category
+    all_txs = await db.transacoes.find({**tq, "status": "confirmado"}, {"_id": 0, "tipo": 1, "valor": 1, "categoria_id": 1, "data": 1}).to_list(10000)
+    total_receitas = sum(t["valor"] for t in all_txs if t["tipo"] == "receita")
+    total_despesas = sum(t["valor"] for t in all_txs if t["tipo"] == "despesa")
+    by_cat = {}
+    for t in all_txs:
+        cid = t.get("categoria_id")
+        if cid:
+            by_cat.setdefault(cid, {"receita": 0, "despesa": 0})
+            by_cat[cid][t["tipo"]] = by_cat[cid].get(t["tipo"], 0) + t["valor"]
+    cat_data = []
+    for cid, vals in by_cat.items():
+        cat = await db.categorias_financeiras.find_one({"id": cid}, {"_id": 0, "nome": 1, "cor": 1})
+        cat_data.append({"nome": cat["nome"] if cat else "Sem categoria", "cor": cat.get("cor", "#999") if cat else "#999", **vals})
+    # Monthly flow (last 6 months)
+    fluxo = []
+    for i in range(5, -1, -1):
+        d = now - timedelta(days=i * 30)
+        m = f"{d.year}-{d.month:02d}"
+        r = sum(t["valor"] for t in all_txs if t["tipo"] == "receita" and t.get("data", "").startswith(m))
+        dp = sum(t["valor"] for t in all_txs if t["tipo"] == "despesa" and t.get("data", "").startswith(m))
+        fluxo.append({"mes": m, "receitas": r, "despesas": dp})
+    return {
+        "saldo_total": round(saldo_total, 2),
+        "contas": [{"nome": c["nome"], "saldo": round(c.get("saldo_atual", 0), 2)} for c in contas],
+        "receitas_mes": round(receitas_mes, 2),
+        "despesas_mes": round(despesas_mes, 2),
+        "resultado_mes": round(receitas_mes - despesas_mes, 2),
+        "total_receitas": round(total_receitas, 2),
+        "total_despesas": round(total_despesas, 2),
+        "por_categoria": cat_data,
+        "fluxo_mensal": fluxo,
+    }
+
+@api_router.get("/church/fin/painel-estrategico")
+async def get_fin_painel(current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    tq = {"tenant_id": tenant_id} if tenant_id else {}
+    now = datetime.now(timezone.utc)
+    all_txs = await db.transacoes.find({**tq, "status": "confirmado"}, {"_id": 0, "tipo": 1, "valor": 1, "data": 1, "categoria_id": 1, "centro_custo_id": 1}).to_list(10000)
+    # Annual totals
+    ano_atual = str(now.year)
+    receita_anual = sum(t["valor"] for t in all_txs if t["tipo"] == "receita" and t.get("data", "").startswith(ano_atual))
+    despesa_anual = sum(t["valor"] for t in all_txs if t["tipo"] == "despesa" and t.get("data", "").startswith(ano_atual))
+    # Monthly comparison (12 months)
+    comparativo = []
+    for i in range(11, -1, -1):
+        d = now - timedelta(days=i * 30)
+        m = f"{d.year}-{d.month:02d}"
+        r = sum(t["valor"] for t in all_txs if t["tipo"] == "receita" and t.get("data", "").startswith(m))
+        dp = sum(t["valor"] for t in all_txs if t["tipo"] == "despesa" and t.get("data", "").startswith(m))
+        comparativo.append({"mes": m, "receitas": round(r, 2), "despesas": round(dp, 2)})
+    # Top expenses by category
+    despesas_cat = {}
+    for t in all_txs:
+        if t["tipo"] == "despesa":
+            cid = t.get("categoria_id", "sem_categoria")
+            despesas_cat[cid] = despesas_cat.get(cid, 0) + t["valor"]
+    top_despesas = []
+    for cid, val in sorted(despesas_cat.items(), key=lambda x: x[1], reverse=True)[:10]:
+        cat = await db.categorias_financeiras.find_one({"id": cid}, {"_id": 0, "nome": 1}) if cid != "sem_categoria" else None
+        top_despesas.append({"nome": cat["nome"] if cat else "Sem categoria", "valor": round(val, 2)})
+    # Health indicators
+    total_r = sum(t["valor"] for t in all_txs if t["tipo"] == "receita")
+    total_d = sum(t["valor"] for t in all_txs if t["tipo"] == "despesa")
+    saude = "positiva" if total_r > total_d else "negativa" if total_d > total_r else "equilibrada"
+    return {
+        "receita_anual": round(receita_anual, 2),
+        "despesa_anual": round(despesa_anual, 2),
+        "resultado_anual": round(receita_anual - despesa_anual, 2),
+        "comparativo_mensal": comparativo,
+        "top_despesas": top_despesas,
+        "saude_financeira": saude,
+        "total_receitas": round(total_r, 2),
+        "total_despesas": round(total_d, 2),
+    }
+
+@api_router.post("/church/fin/importar")
+async def importar_transacoes(data: Dict[str, Any], current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    if not tenant_id:
+        raise HTTPException(status_code=400, detail="Tenant ID não encontrado")
+    rows = data.get("rows", [])
+    if not rows:
+        raise HTTPException(status_code=400, detail="Nenhuma linha para importar")
+    imported = 0
+    errors = []
+    for i, row in enumerate(rows):
+        try:
+            valor = float(row.get("valor", 0))
+            if valor <= 0:
+                errors.append(f"Linha {i+1}: valor inválido")
+                continue
+            tx_data = TransacaoBase(
+                tipo=row.get("tipo", "receita"),
+                valor=valor,
+                data=row.get("data", datetime.now(timezone.utc).strftime("%Y-%m-%d")),
+                descricao=row.get("descricao", ""),
+                conta_id=row.get("conta_id"),
+                categoria_id=row.get("categoria_id"),
+                status=row.get("status", "confirmado"),
+            )
+            tx = Transacao(**tx_data.model_dump(), tenant_id=tenant_id)
+            doc = tx.model_dump()
+            doc['created_at'] = doc['created_at'].isoformat()
+            await db.transacoes.insert_one(doc)
+            if tx_data.status == "confirmado" and tx_data.conta_id:
+                inc = tx_data.valor if tx_data.tipo == "receita" else -tx_data.valor
+                await db.contas_financeiras.update_one({"id": tx_data.conta_id}, {"$inc": {"saldo_atual": inc}})
+            imported += 1
+        except Exception as e:
+            errors.append(f"Linha {i+1}: {str(e)}")
+    await log_financeiro(tenant_id, current_user.get('email', ''), "importar_transacoes", dados_depois={"importadas": imported, "erros": len(errors)})
+    return {"imported": imported, "errors": errors}
+
+
 # ==================== CHURCH ADMIN - DONATIONS ====================
 @api_router.post("/church/donations", response_model=Donation)
 async def create_donation(donation_data: DonationCreate, current_user: dict = Depends(require_church_admin)):
