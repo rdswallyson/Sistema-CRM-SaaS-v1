@@ -1,83 +1,77 @@
 # Firmes - Church Management SaaS Platform
 
 ## Problem Statement
-Multi-tenant SaaS platform for church management ("Firmes"), supporting Super Admin and Church Admin roles with isolated tenant data.
+Multi-tenant SaaS platform for church management with Super Admin and Church Admin roles. Features include member management, departments, groups, teaching (ensino), financial, events, discipleship, and communication modules.
 
-## Tech Stack
-- **Backend:** FastAPI + MongoDB (Pymongo)
-- **Frontend:** React + TailwindCSS + Shadcn UI
-- **Auth:** JWT-based authentication
-- **Architecture:** Multi-tenant with `tenant_id` isolation
+## Architecture
+- **Backend**: FastAPI (Python) + MongoDB (motor async) + JWT auth
+- **Frontend**: React + TailwindCSS + Shadcn/UI + Axios
+- **DB**: MongoDB with multi-tenant isolation via `tenant_id`
+- **Auth**: JWT-based with `super_admin` and `admin_church` roles
 
-## Core Modules Implemented
+## Core Requirements
+1. Multi-Tenant Architecture with data isolation
+2. Member Management (CRUD, categories, positions, custom fields, reports)
+3. Departments (CRUD, member assignment, archive/reactivate)
+4. Groups (CRUD, categories, leader assignment, reports, strategic panel)
+5. Teaching/Ensino (Studies, Schools, Classes, Progress tracking, Academic dashboard)
+6. Financial (Transactions, Categories, Accounts, Cost Centers, Contacts, Reports, Import/Export, Strategic dashboard)
+7. Events (CRUD, check-in)
+8. Discipleship (Trails, Progress, Mentorship)
+9. Communication (placeholder for WhatsApp/SMS/Email)
 
-### Super Admin Panel
-- Manage churches (CRUD, activate/deactivate)
-- Manage subscription plans
-- Global metrics dashboard
-- Promotions management
+## What's Been Implemented
+### Completed (All Tested)
+- Full backend API with all CRUD endpoints for all modules
+- Frontend pages for all modules with proper CRUD handlers
+- Dashboard with stats, charts, and alerts
+- Registration flow with auto-tenant creation (FIXED 2026-03-01)
+- Members module with filtering, pagination, categories, positions, custom fields
+- Departments module with member assignment and archiving
+- Groups module with categories, leaders, reports
+- Teaching module with 6 sub-pages (studies, schools, classes, tracking, export, academic panel)
+- Financial module with 12 sub-pages (transactions, reports, history, categories, accounts, contacts, cost centers, lock periods, import, export, strategic panel)
+- Events module with CRUD
+- Discipleship module with trails and progress
 
-### Church Admin Panel
-- **Dashboard:** KPI cards, charts (member growth, revenue), alerts, birthday notifications
-- **Members Module (9 sub-pages):**
-  - Ver todos, Adicionar membro, Campos adicionais, Categorias, Cargos
-  - Cartao do membro (QR code), Aniversariantes, Relatorios, Editar nomes do menu
-- **Departments Module:** Card-based UI, member management, dashboard interno
-- **Groups Module (7 pages - TESTED Feb 28, 2026):**
-  - Ver todos, Adicionar grupo, Categorias de grupos, Relatorios, Exportar, Painel Estrategico, Detalhe do grupo
-- **Ensino Module (7 pages - TESTED Feb 28, 2026):**
-  - Estudos, Escolas, Turmas, Acompanhamento Pessoal, Exportar, Painel Academico
-  - Collections: estudos, escolas, turmas, turma_membros, progresso_ensino
-- **Financial Module (12 pages - TESTED Mar 1, 2026):**
-  - Resumo (Dashboard), Transacoes, Relatorios, Historico (Audit Logs)
-  - Categorias, Contas, Contatos, Centros de Custos
-  - Bloqueio de Periodos, Importar CSV, Exportar CSV, Painel Estrategico
-  - Business rules: confirmed tx only cancelled, negative values rejected, blocked periods, audit logging
-  - Collections: contas_financeiras, categorias_financeiras, centros_custos, contatos_financeiros, transacoes, financeiro_logs, periodos_bloqueados
-- **Events:** CRUD with edit/delete, check-in
-- **Discipleship:** Trails with progress tracking, mentorship
-- **Communication:** Email/SMS/WhatsApp (placeholder), birthday auto-greeting
-- **Settings:** Church customization
+### Critical Bug Fixed (2026-03-01)
+**Root Cause**: Registration endpoint was not creating a tenant for new church admin users, leaving `tenant_id` as `None`. Since all CRUD operations require `tenant_id`, the app was effectively "view-only" for self-registered users.
+**Fix Applied**:
+1. Backend: `/api/auth/register` now auto-creates a tenant when `role=admin_church`
+2. Frontend: `RegisterPage.jsx` now includes "Nome da Igreja" field
+3. DB: Existing orphaned users (without tenant_id) were assigned to their correct tenants
 
-### Landing Page
-- Conversion-focused institutional site with plans/FAQ
-
-## Key API Endpoints
-- Auth: POST /api/auth/login, POST /api/auth/register
-- Members: /api/church/members (CRUD + filters)
-- Departments: /api/church/departments (CRUD), /api/church/departments/{id}/members
-- Groups: /api/church/groups (CRUD), /api/church/groups/{id}/members, /api/church/groups/strategic-dashboard
-- Group Categories: /api/church/group-categories (CRUD)
-- Ensino: /api/church/estudos, /api/church/escolas, /api/church/turmas, /api/church/turmas/{id}/membros
-- Progresso: /api/church/progresso-ensino, /api/church/ensino/painel-academico
-- Financial: /api/church/fin/contas, /api/church/fin/categorias, /api/church/fin/centros-custo
-- Financial: /api/church/fin/contatos, /api/church/fin/transacoes, /api/church/fin/logs
-- Financial: /api/church/fin/periodos-bloqueados, /api/church/fin/resumo, /api/church/fin/painel-estrategico
-- Financial: /api/church/fin/importar
+### Test Results (iteration_8)
+- Backend: 56/56 tests passed (Members, Categories, Positions, Custom Fields, Departments, Events, Groups, Group Categories, Registration)
+- Frontend: All CRUD pages verified functional
 
 ## Credentials
-- Super Admin: admin@firmes.com / admin123
-- Church Admin: admin.teste.154017@teste.com / admin123
+- Super Admin: `admin@firmesnafe.com` / `admin123`
+- Test Church Admin: `crud@test.com` / `crud123`
 
-## What's Completed
-- [x] Full-stack scaffolding + Multi-tenant architecture with JWT auth
-- [x] All core modules (Members, Events, Financial-basic, Discipleship, Communication)
-- [x] Members Module Evolution (9 sub-pages) - Feb 28, 2026
-- [x] Birthday notifications + auto-greeting system - Feb 28, 2026
-- [x] Departments module (replaces Ministerios) - Feb 28, 2026
-- [x] Groups module (7 pages, 23/23 backend tests) - Feb 28, 2026
-- [x] Ensino module (7 pages, 34/34 backend tests) - Feb 28, 2026
-- [x] Financial module (12 pages, 32/32 backend tests) - Mar 1, 2026
+## Pending/Future Tasks
+### P1 - Upcoming
+- Implement missing Super Admin features (Gestão de Suporte/Tickets, Personalização de temas)
+- Dashboard enhancements (Heatmap de presença, Análise preditiva de evasão)
+- WhatsApp integration via Twilio
 
-## Pending / Backlog
-- [ ] Full System Integration Audit (all modules functional)
-- [ ] Edit functionality review for all modules
-- [ ] Gestao de Suporte e Tickets (Super Admin)
-- [ ] Heatmap de presenca
-- [ ] Analise preditiva de evasao
-- [ ] WhatsApp/Twilio real integration
-- [ ] Gamification and Certificates
-- [ ] White-Labeling (custom domains)
-- [ ] Mobile App
-- [ ] Advanced AI features
-- [ ] Refactor server.py into modular structure
+### P2 - Future
+- Gamification and Certificates
+- Full White-Labeling (custom domains, editable price tables)
+- Mobile App (member-facing)
+- Advanced AI Features (behavioral analysis, leader suggestions)
+
+### Refactoring Needed
+- **server.py (HIGH)**: 3260+ lines monolith needs to be split into modules (routes, models, services)
+- **Frontend components (MEDIUM)**: Create reusable components for common patterns (data tables, forms, modals)
+
+## Key Files
+- `/app/backend/server.py` - Monolithic backend (ALL routes, models, logic)
+- `/app/frontend/src/lib/api.js` - Centralized API functions
+- `/app/frontend/src/App.js` - All frontend routes
+- `/app/frontend/src/components/layout/DashboardLayout.jsx` - Sidebar navigation
+- `/app/frontend/src/pages/church/` - All church admin pages
+
+## 3rd Party Integrations (Placeholder)
+- Stripe: Payment placeholder
+- Twilio: SMS/WhatsApp placeholder
