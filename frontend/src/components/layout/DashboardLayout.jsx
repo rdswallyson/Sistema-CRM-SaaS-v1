@@ -124,6 +124,7 @@ export default function DashboardLayout({ variant = 'church' }) {
     const [groupsExpanded, setGroupsExpanded] = useState(false);
     const [teachingExpanded, setTeachingExpanded] = useState(false);
     const [financialExpanded, setFinancialExpanded] = useState(false);
+    const [agendaExpanded, setAgendaExpanded] = useState(false);
     const [menuLabels, setMenuLabels] = useState({});
     const { user, logout } = useAuth();
     const location = useLocation();
