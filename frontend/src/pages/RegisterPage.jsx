@@ -46,6 +46,7 @@ export default function RegisterPage() {
                 email: formData.email,
                 password: formData.password,
                 role: 'admin_church',
+                church_name: formData.church_name,
             });
             toast.success('Conta criada com sucesso!');
             navigate('/dashboard');
