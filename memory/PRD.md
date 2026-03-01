@@ -1,7 +1,7 @@
 # Firmes - Church Management SaaS Platform
 
 ## Problem Statement
-Multi-tenant SaaS platform for church management with Super Admin and Church Admin roles. Features include member management, departments, groups, teaching (ensino), financial, events, discipleship, and communication modules.
+Multi-tenant SaaS platform for church management with Super Admin and Church Admin roles. Features include member management, departments, groups, teaching (ensino), financial, agenda (calendar/events/notifications), discipleship, and communication modules.
 
 ## Architecture
 - **Backend**: FastAPI (Python) + MongoDB (motor async) + JWT auth
@@ -16,7 +16,7 @@ Multi-tenant SaaS platform for church management with Super Admin and Church Adm
 4. Groups (CRUD, categories, leader assignment, reports, strategic panel)
 5. Teaching/Ensino (Studies, Schools, Classes, Progress tracking, Academic dashboard)
 6. Financial (Transactions, Categories, Accounts, Cost Centers, Contacts, Reports, Import/Export, Strategic dashboard)
-7. Events (CRUD, check-in)
+7. **Agenda Module** (Calendar, Events free/paid, Mural de Avisos, Anotacoes, Notificacoes, Export)
 8. Discipleship (Trails, Progress, Mentorship)
 9. Communication (placeholder for WhatsApp/SMS/Email)
 
@@ -29,21 +29,25 @@ Multi-tenant SaaS platform for church management with Super Admin and Church Adm
 - Members module with filtering, pagination, categories, positions, custom fields
 - Departments module with member assignment and archiving
 - Groups module with categories, leaders, reports
-- Teaching module with 6 sub-pages (studies, schools, classes, tracking, export, academic panel)
-- Financial module with 12 sub-pages (transactions, reports, history, categories, accounts, contacts, cost centers, lock periods, import, export, strategic panel)
-- Events module with CRUD
-- Discipleship module with trails and progress
+- Teaching module with 6 sub-pages
+- Financial module with 12 sub-pages
+- **Agenda module with 6 sub-pages** (IMPLEMENTED 2026-03-01)
+  - Calendario: Monthly/list views with filters by type (evento/aviso/aniversario/financeiro/ensino)
+  - Eventos: Free/paid events with financial integration, inscriptions management
+  - Mural de Avisos: Announcements with priority, pinning, department/group targeting
+  - Minhas Anotacoes: Personal private notes with color picker and reminders
+  - Central de Notificacoes: Unified notifications with filters and mark-as-read
+  - Exportar: Export events by period and inscription lists as CSV
 
-### Critical Bug Fixed (2026-03-01)
-**Root Cause**: Registration endpoint was not creating a tenant for new church admin users, leaving `tenant_id` as `None`. Since all CRUD operations require `tenant_id`, the app was effectively "view-only" for self-registered users.
-**Fix Applied**:
-1. Backend: `/api/auth/register` now auto-creates a tenant when `role=admin_church`
-2. Frontend: `RegisterPage.jsx` now includes "Nome da Igreja" field
-3. DB: Existing orphaned users (without tenant_id) were assigned to their correct tenants
+### Test Results
+- **iteration_8**: Backend 56/56 tests - Core CRUD across all modules
+- **iteration_9**: Backend 33/33 tests - Agenda module complete (Events, Inscriptions, Avisos, Anotacoes, Notificacoes, Calendar, Export)
 
-### Test Results (iteration_8)
-- Backend: 56/56 tests passed (Members, Categories, Positions, Custom Fields, Departments, Events, Groups, Group Categories, Registration)
-- Frontend: All CRUD pages verified functional
+### DB Collections
+- **Core**: users, tenants, members, departments, groups, group_categories
+- **Ensino**: estudos, escolas, turmas, turma_membros, progresso_ensino
+- **Financial**: transacoes, contas_financeiras, categorias_financeiras, centros_custo, contatos_financeiros, logs_financeiros, periodos_bloqueio
+- **Agenda**: events, evento_inscricoes, avisos, anotacoes, notificacoes
 
 ## Credentials
 - Super Admin: `admin@firmesnafe.com` / `admin123`
@@ -51,8 +55,8 @@ Multi-tenant SaaS platform for church management with Super Admin and Church Adm
 
 ## Pending/Future Tasks
 ### P1 - Upcoming
-- Implement missing Super Admin features (Gestão de Suporte/Tickets, Personalização de temas)
-- Dashboard enhancements (Heatmap de presença, Análise preditiva de evasão)
+- Implement missing Super Admin features (Gestao de Suporte/Tickets, Personalizacao de temas)
+- Dashboard enhancements (Heatmap de presenca, Analise preditiva de evasao)
 - WhatsApp integration via Twilio
 
 ### P2 - Future
@@ -62,14 +66,15 @@ Multi-tenant SaaS platform for church management with Super Admin and Church Adm
 - Advanced AI Features (behavioral analysis, leader suggestions)
 
 ### Refactoring Needed
-- **server.py (HIGH)**: 3260+ lines monolith needs to be split into modules (routes, models, services)
-- **Frontend components (MEDIUM)**: Create reusable components for common patterns (data tables, forms, modals)
+- **server.py (HIGH)**: 3700+ lines monolith needs to be split into modules
+- **Frontend components (MEDIUM)**: Create reusable components for common patterns
 
 ## Key Files
-- `/app/backend/server.py` - Monolithic backend (ALL routes, models, logic)
+- `/app/backend/server.py` - Monolithic backend
 - `/app/frontend/src/lib/api.js` - Centralized API functions
 - `/app/frontend/src/App.js` - All frontend routes
 - `/app/frontend/src/components/layout/DashboardLayout.jsx` - Sidebar navigation
+- `/app/frontend/src/pages/church/agenda/` - 6 Agenda sub-pages
 - `/app/frontend/src/pages/church/` - All church admin pages
 
 ## 3rd Party Integrations (Placeholder)
