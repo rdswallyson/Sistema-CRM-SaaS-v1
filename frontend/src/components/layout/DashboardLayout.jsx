@@ -348,6 +348,46 @@ export default function DashboardLayout({ variant = 'church' }) {
                                 )}
                             </div>
 
+                            {/* Financial expandable section */}
+                            <div>
+                                <button
+                                    data-testid="nav-financeiro"
+                                    className={cn(
+                                        "flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium transition-colors w-full text-left",
+                                        location.pathname.startsWith('/dashboard/financial')
+                                            ? "bg-brand-sky/10 text-brand-sky-active"
+                                            : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                                    )}
+                                    onClick={() => setFinancialExpanded(!financialExpanded)}
+                                >
+                                    <DollarSign className="w-5 h-5" />
+                                    <span className="flex-1">{getMenuLabel('financial_main', 'Financeiro')}</span>
+                                    {financialExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                                </button>
+                                {financialExpanded && (
+                                    <div className="ml-4 mt-1 space-y-0.5 border-l-2 border-slate-100 pl-3">
+                                        {defaultFinancialSubItems.map((sub) => {
+                                            const Icon = sub.icon;
+                                            const active = sub.exact
+                                                ? location.pathname === sub.path
+                                                : location.pathname.startsWith(sub.path);
+                                            return (
+                                                <Link key={sub.path} to={sub.path} data-testid={`nav-${sub.key}`}
+                                                    className={cn(
+                                                        "flex items-center gap-2 px-2.5 py-2 rounded-md text-sm transition-colors",
+                                                        active ? "bg-brand-sky/10 text-brand-sky-active font-medium" : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"
+                                                    )}
+                                                    onClick={() => setSidebarOpen(false)}
+                                                >
+                                                    <Icon className="w-4 h-4" />
+                                                    <span>{getMenuLabel(sub.key, sub.defaultLabel)}</span>
+                                                </Link>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+
                             {/* Other nav items */}
                             {navItems.filter(i => i.path !== '/dashboard').filter(i => !i.path.includes('/dashboard/financial')).map((item) => {
                                 const Icon = item.icon;
