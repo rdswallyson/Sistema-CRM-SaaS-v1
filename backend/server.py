@@ -382,13 +382,24 @@ class PeriodoBloqueado(PeriodoBloqueadoBase):
 class EventBase(BaseModel):
     title: str
     description: Optional[str] = None
+    category: Optional[str] = None
+    event_type: str = "gratuito"  # gratuito, pago
     event_date: str
+    event_date_end: Optional[str] = None
     event_time: Optional[str] = None
     location: Optional[str] = None
     max_capacity: Optional[int] = None
     is_paid: bool = False
     price: float = 0.0
-    ministry_id: Optional[str] = None
+    image_url: Optional[str] = None
+    department_id: Optional[str] = None
+    group_id: Optional[str] = None
+    responsavel_id: Optional[str] = None
+    status: str = "active"  # active, finished, cancelled
+    # Financial fields for paid events
+    conta_financeira_id: Optional[str] = None
+    categoria_financeira_id: Optional[str] = None
+    centro_custo_id: Optional[str] = None
 
 class EventCreate(EventBase):
     pass
@@ -400,6 +411,69 @@ class Event(EventBase):
     registered_count: int = 0
     checked_in_count: int = 0
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+# ==================== AGENDA: INSCRICOES ====================
+class EventoInscricaoBase(BaseModel):
+    evento_id: str
+    membro_id: str
+    status_pagamento: str = "pendente"  # pendente, confirmado, estornado
+    valor_pago: float = 0.0
+
+class EventoInscricao(EventoInscricaoBase):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    tenant_id: str
+    transacao_id: Optional[str] = None
+    data_inscricao: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+# ==================== AGENDA: AVISOS ====================
+class AvisoBase(BaseModel):
+    titulo: str
+    conteudo: str
+    departamento_id: Optional[str] = None
+    grupo_id: Optional[str] = None
+    data_validade: Optional[str] = None
+    prioridade: str = "normal"  # baixa, normal, alta, urgente
+    anexo: Optional[str] = None
+    fixado: bool = False
+    data_publicacao: Optional[str] = None
+    status: str = "publicado"  # rascunho, agendado, publicado
+
+class Aviso(AvisoBase):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    tenant_id: str
+    autor_id: Optional[str] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+# ==================== AGENDA: ANOTACOES ====================
+class AnotacaoBase(BaseModel):
+    titulo: str
+    conteudo: Optional[str] = None
+    data_lembrete: Optional[str] = None
+    hora_lembrete: Optional[str] = None
+    cor: str = "#6366f1"
+
+class Anotacao(AnotacaoBase):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    usuario_id: str
+    tenant_id: str
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+# ==================== AGENDA: NOTIFICACOES ====================
+class NotificacaoBase(BaseModel):
+    tipo: str  # evento_novo, pagamento_confirmado, evento_cancelado, aviso, alteracao
+    mensagem: str
+    link_referencia: Optional[str] = None
+
+class Notificacao(NotificacaoBase):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    usuario_id: str
+    tenant_id: str
+    status: str = "nao_lida"  # nao_lida, lida
+    data_criacao: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class DonationBase(BaseModel):
     member_id: Optional[str] = None
