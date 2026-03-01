@@ -85,15 +85,15 @@ export default function MuralAvisosPage() {
                                 <div><Label>Data Validade</Label><Input type="date" value={formData.data_validade} onChange={e => setFormData(p => ({...p, data_validade: e.target.value}))} /></div>
                                 <div><Label>Publicacao Agendada</Label><Input type="date" value={formData.data_publicacao} onChange={e => setFormData(p => ({...p, data_publicacao: e.target.value}))} /></div>
                                 <div><Label>Departamento Alvo</Label>
-                                    <Select value={formData.departamento_id} onValueChange={v => setFormData(p => ({...p, departamento_id: v}))}>
+                                    <Select value={formData.departamento_id || '_all_'} onValueChange={v => setFormData(p => ({...p, departamento_id: v === '_all_' ? '' : v}))}>
                                         <SelectTrigger><SelectValue placeholder="Todos" /></SelectTrigger>
-                                        <SelectContent><SelectItem value="">Todos</SelectItem>{departments.map(d => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}</SelectContent>
+                                        <SelectContent><SelectItem value="_all_">Todos</SelectItem>{departments.map(d => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}</SelectContent>
                                     </Select>
                                 </div>
                                 <div><Label>Grupo Alvo</Label>
-                                    <Select value={formData.grupo_id} onValueChange={v => setFormData(p => ({...p, grupo_id: v}))}>
+                                    <Select value={formData.grupo_id || '_all_'} onValueChange={v => setFormData(p => ({...p, grupo_id: v === '_all_' ? '' : v}))}>
                                         <SelectTrigger><SelectValue placeholder="Todos" /></SelectTrigger>
-                                        <SelectContent><SelectItem value="">Todos</SelectItem>{groups.map(g => <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>)}</SelectContent>
+                                        <SelectContent><SelectItem value="_all_">Todos</SelectItem>{groups.map(g => <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>)}</SelectContent>
                                     </Select>
                                 </div>
                             </div>
