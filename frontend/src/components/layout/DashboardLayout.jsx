@@ -101,6 +101,15 @@ const defaultFinancialSubItems = [
     { path: '/dashboard/financial/strategic', key: 'fin_painel', defaultLabel: 'Painel Estrategico', icon: BarChart3 },
 ];
 
+const defaultAgendaSubItems = [
+    { path: '/dashboard/agenda/calendar', key: 'agenda_calendario', defaultLabel: 'Calendario', icon: CalendarDays, exact: true },
+    { path: '/dashboard/agenda/events', key: 'agenda_eventos', defaultLabel: 'Eventos', icon: Calendar },
+    { path: '/dashboard/agenda/announcements', key: 'agenda_avisos', defaultLabel: 'Mural de Avisos', icon: Megaphone },
+    { path: '/dashboard/agenda/notes', key: 'agenda_anotacoes', defaultLabel: 'Minhas Anotacoes', icon: StickyNote },
+    { path: '/dashboard/agenda/export', key: 'agenda_exportar', defaultLabel: 'Exportar', icon: Download },
+    { path: '/dashboard/agenda/notifications', key: 'agenda_notificacoes', defaultLabel: 'Central de Notificacoes', icon: Bell },
+];
+
 const churchNavBase = [
     { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, exact: true },
     { path: '/dashboard/departments', label: 'Departamentos', icon: Church },
