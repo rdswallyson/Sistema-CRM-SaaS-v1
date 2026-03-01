@@ -633,12 +633,24 @@ async def register_user(user_data: UserCreate):
     if existing:
         raise HTTPException(status_code=400, detail="Email já cadastrado")
     
+    tenant_id = user_data.tenant_id
+    
+    # Auto-create tenant for church admin registration
+    if user_data.role == UserRole.ADMIN_CHURCH and not tenant_id:
+        church_name = user_data.church_name or f"Igreja de {user_data.name}"
+        tenant = Tenant(name=church_name, plan_type=PlanType.ESSENTIAL, member_limit=100)
+        tenant_doc = tenant.model_dump()
+        tenant_doc['created_at'] = tenant_doc['created_at'].isoformat()
+        tenant_doc['updated_at'] = tenant_doc['updated_at'].isoformat()
+        await db.tenants.insert_one(tenant_doc)
+        tenant_id = tenant.id
+    
     user = User(
         email=user_data.email,
         name=user_data.name,
         role=user_data.role,
         phone=user_data.phone,
-        tenant_id=user_data.tenant_id
+        tenant_id=tenant_id
     )
     doc = user.model_dump()
     doc['password_hash'] = hash_password(user_data.password)
