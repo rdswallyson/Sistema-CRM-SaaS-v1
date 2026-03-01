@@ -1490,7 +1490,7 @@ async def create_event(event_data: EventCreate, current_user: dict = Depends(req
     doc['created_at'] = doc['created_at'].isoformat()
     await db.events.insert_one(doc)
     # Notify
-    await criar_notificacao(tenant_id, current_user['id'], "evento_novo", f"Novo evento: {event.title}", f"/dashboard/agenda/events")
+    await criar_notificacao(tenant_id, current_user['user_id'], "evento_novo", f"Novo evento: {event.title}", f"/dashboard/agenda/events")
     return event
 
 @api_router.get("/church/events")
@@ -1553,7 +1553,7 @@ async def update_event(event_id: str, updates: Dict[str, Any], current_user: dic
     await db.events.update_one(query, {"$set": updates})
     # If event cancelled, notify and optionally handle refunds
     if updates.get("status") == "cancelled" and old.get("status") != "cancelled":
-        await criar_notificacao(tenant_id, current_user['id'], "evento_cancelado", f"Evento cancelado: {old.get('title')}", "/dashboard/agenda/events")
+        await criar_notificacao(tenant_id, current_user['user_id'], "evento_cancelado", f"Evento cancelado: {old.get('title')}", "/dashboard/agenda/events")
     return {"message": "Evento atualizado com sucesso"}
 
 @api_router.delete("/church/events/{event_id}")
@@ -1625,7 +1625,7 @@ async def criar_inscricao(event_id: str, data: Dict[str, Any], current_user: dic
         if tx_data.conta_id:
             await db.contas_financeiras.update_one({"id": tx_data.conta_id}, {"$inc": {"saldo_atual": valor}})
         await log_financeiro(tenant_id, current_user.get('email', ''), "inscricao_evento_pago", transacao_id=tx.id, dados_depois={"evento": event.get('title'), "valor": valor})
-        await criar_notificacao(tenant_id, current_user['id'], "pagamento_confirmado", f"Pagamento confirmado: {event.get('title')} - R$ {valor:.2f}", "/dashboard/agenda/events")
+        await criar_notificacao(tenant_id, current_user['user_id'], "pagamento_confirmado", f"Pagamento confirmado: {event.get('title')} - R$ {valor:.2f}", "/dashboard/agenda/events")
     
     doc['transacao_id'] = transacao_id
     await db.evento_inscricoes.insert_one(doc)
@@ -1698,7 +1698,7 @@ async def confirmar_pagamento_inscricao(event_id: str, inscricao_id: str, curren
     
     await db.evento_inscricoes.update_one({"id": inscricao_id}, {"$set": {"status_pagamento": "confirmado", "transacao_id": tx.id, "valor_pago": valor}})
     await log_financeiro(tenant_id, current_user.get('email', ''), "confirmar_pgto_inscricao", transacao_id=tx.id, dados_depois={"valor": valor})
-    await criar_notificacao(tenant_id, current_user['id'], "pagamento_confirmado", f"Pagamento confirmado: {event.get('title', '')} - R$ {valor:.2f}", "/dashboard/agenda/events")
+    await criar_notificacao(tenant_id, current_user['user_id'], "pagamento_confirmado", f"Pagamento confirmado: {event.get('title', '')} - R$ {valor:.2f}", "/dashboard/agenda/events")
     return {"message": "Pagamento confirmado", "transacao_id": tx.id}
 
 # ==================== AGENDA: AVISOS ====================
@@ -1707,11 +1707,11 @@ async def criar_aviso(data: AvisoBase, current_user: dict = Depends(require_chur
     tenant_id = current_user.get('tenant_id')
     if not tenant_id:
         raise HTTPException(status_code=400, detail="Tenant ID não encontrado")
-    aviso = Aviso(**data.model_dump(), tenant_id=tenant_id, autor_id=current_user['id'])
+    aviso = Aviso(**data.model_dump(), tenant_id=tenant_id, autor_id=current_user['user_id'])
     doc = aviso.model_dump()
     doc['created_at'] = doc['created_at'].isoformat()
     await db.avisos.insert_one(doc)
-    await criar_notificacao(tenant_id, current_user['id'], "aviso", f"Novo aviso: {aviso.titulo}", "/dashboard/agenda/announcements")
+    await criar_notificacao(tenant_id, current_user['user_id'], "aviso", f"Novo aviso: {aviso.titulo}", "/dashboard/agenda/announcements")
     return aviso
 
 @api_router.get("/church/avisos")
@@ -1761,7 +1761,7 @@ async def criar_anotacao(data: AnotacaoBase, current_user: dict = Depends(requir
     tenant_id = current_user.get('tenant_id')
     if not tenant_id:
         raise HTTPException(status_code=400, detail="Tenant ID não encontrado")
-    anotacao = Anotacao(**data.model_dump(), usuario_id=current_user['id'], tenant_id=tenant_id)
+    anotacao = Anotacao(**data.model_dump(), usuario_id=current_user['user_id'], tenant_id=tenant_id)
     doc = anotacao.model_dump()
     doc['created_at'] = doc['created_at'].isoformat()
     await db.anotacoes.insert_one(doc)
@@ -1769,13 +1769,13 @@ async def criar_anotacao(data: AnotacaoBase, current_user: dict = Depends(requir
 
 @api_router.get("/church/anotacoes")
 async def listar_anotacoes(current_user: dict = Depends(require_church_admin)):
-    query = {"usuario_id": current_user['id']}
+    query = {"usuario_id": current_user['user_id']}
     anotacoes = await db.anotacoes.find(query, {"_id": 0}).sort("created_at", -1).to_list(200)
     return anotacoes
 
 @api_router.put("/church/anotacoes/{anotacao_id}")
 async def atualizar_anotacao(anotacao_id: str, updates: Dict[str, Any], current_user: dict = Depends(require_church_admin)):
-    query = {"id": anotacao_id, "usuario_id": current_user['id']}
+    query = {"id": anotacao_id, "usuario_id": current_user['user_id']}
     updates['updated_at'] = datetime.now(timezone.utc).isoformat()
     result = await db.anotacoes.update_one(query, {"$set": updates})
     if result.matched_count == 0:
@@ -1784,7 +1784,7 @@ async def atualizar_anotacao(anotacao_id: str, updates: Dict[str, Any], current_
 
 @api_router.delete("/church/anotacoes/{anotacao_id}")
 async def excluir_anotacao(anotacao_id: str, current_user: dict = Depends(require_church_admin)):
-    query = {"id": anotacao_id, "usuario_id": current_user['id']}
+    query = {"id": anotacao_id, "usuario_id": current_user['user_id']}
     result = await db.anotacoes.delete_one(query)
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Anotação não encontrada")
@@ -1793,7 +1793,7 @@ async def excluir_anotacao(anotacao_id: str, current_user: dict = Depends(requir
 # ==================== AGENDA: NOTIFICACOES ====================
 @api_router.get("/church/notificacoes")
 async def listar_notificacoes(tipo: Optional[str] = None, status: Optional[str] = None, current_user: dict = Depends(require_church_admin)):
-    query = {"usuario_id": current_user['id'], "tenant_id": current_user.get('tenant_id')}
+    query = {"usuario_id": current_user['user_id'], "tenant_id": current_user.get('tenant_id')}
     if tipo and tipo != "all":
         query["tipo"] = tipo
     if status and status != "all":
@@ -1803,24 +1803,24 @@ async def listar_notificacoes(tipo: Optional[str] = None, status: Optional[str] 
 
 @api_router.get("/church/notificacoes/count")
 async def contar_notificacoes_nao_lidas(current_user: dict = Depends(require_church_admin)):
-    count = await db.notificacoes.count_documents({"usuario_id": current_user['id'], "tenant_id": current_user.get('tenant_id'), "status": "nao_lida"})
+    count = await db.notificacoes.count_documents({"usuario_id": current_user['user_id'], "tenant_id": current_user.get('tenant_id'), "status": "nao_lida"})
     return {"count": count}
 
 @api_router.put("/church/notificacoes/{notificacao_id}/lida")
 async def marcar_notificacao_lida(notificacao_id: str, current_user: dict = Depends(require_church_admin)):
-    result = await db.notificacoes.update_one({"id": notificacao_id, "usuario_id": current_user['id']}, {"$set": {"status": "lida"}})
+    result = await db.notificacoes.update_one({"id": notificacao_id, "usuario_id": current_user['user_id']}, {"$set": {"status": "lida"}})
     if result.matched_count == 0:
         raise HTTPException(status_code=404, detail="Notificação não encontrada")
     return {"message": "Notificação marcada como lida"}
 
 @api_router.put("/church/notificacoes/marcar-todas-lidas")
 async def marcar_todas_lidas(current_user: dict = Depends(require_church_admin)):
-    await db.notificacoes.update_many({"usuario_id": current_user['id'], "tenant_id": current_user.get('tenant_id'), "status": "nao_lida"}, {"$set": {"status": "lida"}})
+    await db.notificacoes.update_many({"usuario_id": current_user['user_id'], "tenant_id": current_user.get('tenant_id'), "status": "nao_lida"}, {"$set": {"status": "lida"}})
     return {"message": "Todas notificações marcadas como lidas"}
 
 @api_router.delete("/church/notificacoes/{notificacao_id}")
 async def excluir_notificacao(notificacao_id: str, current_user: dict = Depends(require_church_admin)):
-    result = await db.notificacoes.delete_one({"id": notificacao_id, "usuario_id": current_user['id']})
+    result = await db.notificacoes.delete_one({"id": notificacao_id, "usuario_id": current_user['user_id']})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Notificação não encontrada")
     return {"message": "Notificação removida"}
