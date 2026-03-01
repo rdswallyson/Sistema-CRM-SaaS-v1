@@ -106,6 +106,7 @@ class UserBase(BaseModel):
 class UserCreate(UserBase):
     password: str
     tenant_id: Optional[str] = None
+    church_name: Optional[str] = None
 
 class UserLogin(BaseModel):
     email: EmailStr
