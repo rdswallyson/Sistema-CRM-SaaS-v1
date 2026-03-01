@@ -43,6 +43,10 @@ import {
     School,
     ClipboardList,
     Download,
+    Bell,
+    Megaphone,
+    StickyNote,
+    CalendarDays,
 } from 'lucide-react';
 
 const adminNavItems = [
