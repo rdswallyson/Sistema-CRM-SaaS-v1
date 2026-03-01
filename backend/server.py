@@ -1473,24 +1473,59 @@ async def remove_member_from_group(group_id: str, member_id: str, current_user: 
     return {"message": "Membro removido do grupo"}
 
 
-# ==================== CHURCH ADMIN - EVENTS ====================
-@api_router.post("/church/events", response_model=Event)
+# ==================== AGENDA: EVENTOS AVANCADOS ====================
+async def criar_notificacao(tenant_id: str, usuario_id: str, tipo: str, mensagem: str, link_referencia: str = None):
+    notif = Notificacao(tipo=tipo, mensagem=mensagem, link_referencia=link_referencia, usuario_id=usuario_id, tenant_id=tenant_id)
+    doc = notif.model_dump()
+    doc['data_criacao'] = doc['data_criacao'].isoformat()
+    await db.notificacoes.insert_one(doc)
+
+@api_router.post("/church/events")
 async def create_event(event_data: EventCreate, current_user: dict = Depends(require_church_admin)):
     tenant_id = current_user.get('tenant_id')
     if not tenant_id:
         raise HTTPException(status_code=400, detail="Tenant ID não encontrado")
-    
     event = Event(**event_data.model_dump(), tenant_id=tenant_id)
     doc = event.model_dump()
     doc['created_at'] = doc['created_at'].isoformat()
     await db.events.insert_one(doc)
+    # Notify
+    await criar_notificacao(tenant_id, current_user['id'], "evento_novo", f"Novo evento: {event.title}", f"/dashboard/agenda/events")
     return event
 
 @api_router.get("/church/events")
-async def list_events(current_user: dict = Depends(require_church_admin)):
+async def list_events(
+    status: Optional[str] = None, event_type: Optional[str] = None,
+    department_id: Optional[str] = None, group_id: Optional[str] = None,
+    search: Optional[str] = None,
+    current_user: dict = Depends(require_church_admin),
+):
     tenant_id = current_user.get('tenant_id')
     query = {"tenant_id": tenant_id} if tenant_id else {}
-    events = await db.events.find(query, {"_id": 0}).to_list(100)
+    if status and status != "all":
+        query["status"] = status
+    if event_type and event_type != "all":
+        query["event_type"] = event_type
+    if department_id:
+        query["department_id"] = department_id
+    if group_id:
+        query["group_id"] = group_id
+    if search:
+        query["$or"] = [{"title": {"$regex": search, "$options": "i"}}, {"description": {"$regex": search, "$options": "i"}}]
+    events = await db.events.find(query, {"_id": 0}).sort("event_date", -1).to_list(200)
+    # Enrich with department/group/responsavel names
+    for ev in events:
+        if ev.get("department_id"):
+            dept = await db.departments.find_one({"id": ev["department_id"]}, {"_id": 0, "name": 1})
+            ev["department_name"] = dept.get("name") if dept else ""
+        if ev.get("group_id"):
+            grp = await db.groups.find_one({"id": ev["group_id"]}, {"_id": 0, "name": 1})
+            ev["group_name"] = grp.get("name") if grp else ""
+        if ev.get("responsavel_id"):
+            resp = await db.members.find_one({"id": ev["responsavel_id"]}, {"_id": 0, "name": 1})
+            ev["responsavel_name"] = resp.get("name") if resp else ""
+        # Count inscriptions
+        ev["inscricoes_count"] = await db.evento_inscricoes.count_documents({"evento_id": ev["id"], "tenant_id": tenant_id})
     return events
 
 @api_router.get("/church/events/{event_id}")
@@ -1499,10 +1534,10 @@ async def get_event(event_id: str, current_user: dict = Depends(require_church_a
     query = {"id": event_id}
     if tenant_id:
         query["tenant_id"] = tenant_id
-    
     event = await db.events.find_one(query, {"_id": 0})
     if not event:
         raise HTTPException(status_code=404, detail="Evento não encontrado")
+    event["inscricoes_count"] = await db.evento_inscricoes.count_documents({"evento_id": event_id, "tenant_id": tenant_id})
     return event
 
 @api_router.put("/church/events/{event_id}")
@@ -1511,11 +1546,14 @@ async def update_event(event_id: str, updates: Dict[str, Any], current_user: dic
     query = {"id": event_id}
     if tenant_id:
         query["tenant_id"] = tenant_id
-    
-    updates['updated_at'] = datetime.now(timezone.utc).isoformat()
-    result = await db.events.update_one(query, {"$set": updates})
-    if result.matched_count == 0:
+    old = await db.events.find_one(query, {"_id": 0})
+    if not old:
         raise HTTPException(status_code=404, detail="Evento não encontrado")
+    updates['updated_at'] = datetime.now(timezone.utc).isoformat()
+    await db.events.update_one(query, {"$set": updates})
+    # If event cancelled, notify and optionally handle refunds
+    if updates.get("status") == "cancelled" and old.get("status") != "cancelled":
+        await criar_notificacao(tenant_id, current_user['id'], "evento_cancelado", f"Evento cancelado: {old.get('title')}", "/dashboard/agenda/events")
     return {"message": "Evento atualizado com sucesso"}
 
 @api_router.delete("/church/events/{event_id}")
@@ -1524,26 +1562,359 @@ async def delete_event(event_id: str, current_user: dict = Depends(require_churc
     query = {"id": event_id}
     if tenant_id:
         query["tenant_id"] = tenant_id
-    
     result = await db.events.delete_one(query)
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Evento não encontrado")
+    await db.evento_inscricoes.delete_many({"evento_id": event_id, "tenant_id": tenant_id})
     return {"message": "Evento removido com sucesso"}
 
 @api_router.post("/church/events/{event_id}/checkin")
 async def event_checkin(event_id: str, member_id: str, current_user: dict = Depends(require_church_admin)):
     tenant_id = current_user.get('tenant_id')
-    
-    # Record attendance
     attendance = AttendanceRecord(tenant_id=tenant_id, event_id=event_id, member_id=member_id)
     doc = attendance.model_dump()
     doc['checked_in_at'] = doc['checked_in_at'].isoformat()
     await db.attendance.insert_one(doc)
-    
-    # Update event count
     await db.events.update_one({"id": event_id}, {"$inc": {"checked_in_count": 1}})
-    
     return {"message": "Check-in realizado com sucesso", "attendance_id": attendance.id}
+
+# ==================== AGENDA: INSCRICOES ====================
+@api_router.post("/church/events/{event_id}/inscricoes")
+async def criar_inscricao(event_id: str, data: Dict[str, Any], current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    if not tenant_id:
+        raise HTTPException(status_code=400, detail="Tenant ID não encontrado")
+    event = await db.events.find_one({"id": event_id, "tenant_id": tenant_id}, {"_id": 0})
+    if not event:
+        raise HTTPException(status_code=404, detail="Evento não encontrado")
+    membro_id = data.get("membro_id")
+    if not membro_id:
+        raise HTTPException(status_code=400, detail="membro_id obrigatório")
+    # Check duplicate
+    existing = await db.evento_inscricoes.find_one({"evento_id": event_id, "membro_id": membro_id, "tenant_id": tenant_id})
+    if existing:
+        raise HTTPException(status_code=400, detail="Membro já inscrito neste evento")
+    # Check capacity
+    if event.get("max_capacity"):
+        count = await db.evento_inscricoes.count_documents({"evento_id": event_id, "tenant_id": tenant_id})
+        if count >= event["max_capacity"]:
+            raise HTTPException(status_code=400, detail="Evento lotado - limite de vagas atingido")
+    
+    status_pgto = "confirmado" if not event.get("is_paid") else data.get("status_pagamento", "pendente")
+    valor = event.get("price", 0.0) if event.get("is_paid") else 0.0
+    
+    inscricao = EventoInscricao(evento_id=event_id, membro_id=membro_id, status_pagamento=status_pgto, valor_pago=valor, tenant_id=tenant_id)
+    doc = inscricao.model_dump()
+    doc['data_inscricao'] = doc['data_inscricao'].isoformat()
+    
+    # For paid events with confirmed payment, create financial transaction
+    transacao_id = None
+    if event.get("is_paid") and status_pgto == "confirmado" and valor > 0:
+        tx_data = TransacaoBase(
+            tipo="receita", valor=valor, data=datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+            conta_id=event.get("conta_financeira_id"), categoria_id=event.get("categoria_financeira_id"),
+            centro_custo_id=event.get("centro_custo_id"), membro_id=membro_id,
+            descricao=f"Inscrição evento: {event.get('title')} - Membro: {membro_id}", status="confirmado",
+        )
+        tx = Transacao(**tx_data.model_dump(), tenant_id=tenant_id)
+        tx_doc = tx.model_dump()
+        tx_doc['created_at'] = tx_doc['created_at'].isoformat()
+        await db.transacoes.insert_one(tx_doc)
+        transacao_id = tx.id
+        # Update account balance
+        if tx_data.conta_id:
+            await db.contas_financeiras.update_one({"id": tx_data.conta_id}, {"$inc": {"saldo_atual": valor}})
+        await log_financeiro(tenant_id, current_user.get('email', ''), "inscricao_evento_pago", transacao_id=tx.id, dados_depois={"evento": event.get('title'), "valor": valor})
+        await criar_notificacao(tenant_id, current_user['id'], "pagamento_confirmado", f"Pagamento confirmado: {event.get('title')} - R$ {valor:.2f}", "/dashboard/agenda/events")
+    
+    doc['transacao_id'] = transacao_id
+    await db.evento_inscricoes.insert_one(doc)
+    await db.events.update_one({"id": event_id}, {"$inc": {"registered_count": 1}})
+    return {"message": "Inscrição realizada com sucesso", "id": inscricao.id, "transacao_id": transacao_id}
+
+@api_router.get("/church/events/{event_id}/inscricoes")
+async def listar_inscricoes(event_id: str, current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    inscricoes = await db.evento_inscricoes.find({"evento_id": event_id, "tenant_id": tenant_id}, {"_id": 0}).to_list(500)
+    for ins in inscricoes:
+        m = await db.members.find_one({"id": ins["membro_id"]}, {"_id": 0, "name": 1, "email": 1, "phone": 1})
+        ins["membro_nome"] = m.get("name") if m else ""
+        ins["membro_email"] = m.get("email") if m else ""
+    return inscricoes
+
+@api_router.delete("/church/events/{event_id}/inscricoes/{inscricao_id}")
+async def cancelar_inscricao(event_id: str, inscricao_id: str, current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    inscricao = await db.evento_inscricoes.find_one({"id": inscricao_id, "tenant_id": tenant_id}, {"_id": 0})
+    if not inscricao:
+        raise HTTPException(status_code=404, detail="Inscrição não encontrada")
+    # If had a paid transaction, create refund transaction
+    if inscricao.get("transacao_id") and inscricao.get("valor_pago", 0) > 0:
+        event = await db.events.find_one({"id": event_id}, {"_id": 0})
+        tx_data = TransacaoBase(
+            tipo="despesa", valor=inscricao["valor_pago"], data=datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+            conta_id=event.get("conta_financeira_id") if event else None,
+            descricao=f"Estorno inscrição evento: {event.get('title', '')} - Membro: {inscricao['membro_id']}",
+            status="confirmado",
+        )
+        tx = Transacao(**tx_data.model_dump(), tenant_id=tenant_id)
+        tx_doc = tx.model_dump()
+        tx_doc['created_at'] = tx_doc['created_at'].isoformat()
+        await db.transacoes.insert_one(tx_doc)
+        if tx_data.conta_id:
+            await db.contas_financeiras.update_one({"id": tx_data.conta_id}, {"$inc": {"saldo_atual": -inscricao["valor_pago"]}})
+        await log_financeiro(tenant_id, current_user.get('email', ''), "estorno_inscricao", transacao_id=tx.id, dados_depois={"valor_estorno": inscricao["valor_pago"]})
+    
+    await db.evento_inscricoes.delete_one({"id": inscricao_id})
+    await db.events.update_one({"id": event_id}, {"$inc": {"registered_count": -1}})
+    return {"message": "Inscrição cancelada com sucesso"}
+
+@api_router.put("/church/events/{event_id}/inscricoes/{inscricao_id}/confirmar-pagamento")
+async def confirmar_pagamento_inscricao(event_id: str, inscricao_id: str, current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    inscricao = await db.evento_inscricoes.find_one({"id": inscricao_id, "tenant_id": tenant_id}, {"_id": 0})
+    if not inscricao:
+        raise HTTPException(status_code=404, detail="Inscrição não encontrada")
+    if inscricao.get("status_pagamento") == "confirmado":
+        return {"message": "Pagamento já confirmado"}
+    event = await db.events.find_one({"id": event_id}, {"_id": 0})
+    valor = inscricao.get("valor_pago", event.get("price", 0))
+    # Create financial transaction
+    tx_data = TransacaoBase(
+        tipo="receita", valor=valor, data=datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+        conta_id=event.get("conta_financeira_id") if event else None,
+        categoria_id=event.get("categoria_financeira_id") if event else None,
+        centro_custo_id=event.get("centro_custo_id") if event else None,
+        membro_id=inscricao["membro_id"],
+        descricao=f"Pagamento confirmado: {event.get('title', '')} - Membro: {inscricao['membro_id']}",
+        status="confirmado",
+    )
+    tx = Transacao(**tx_data.model_dump(), tenant_id=tenant_id)
+    tx_doc = tx.model_dump()
+    tx_doc['created_at'] = tx_doc['created_at'].isoformat()
+    await db.transacoes.insert_one(tx_doc)
+    if tx_data.conta_id:
+        await db.contas_financeiras.update_one({"id": tx_data.conta_id}, {"$inc": {"saldo_atual": valor}})
+    
+    await db.evento_inscricoes.update_one({"id": inscricao_id}, {"$set": {"status_pagamento": "confirmado", "transacao_id": tx.id, "valor_pago": valor}})
+    await log_financeiro(tenant_id, current_user.get('email', ''), "confirmar_pgto_inscricao", transacao_id=tx.id, dados_depois={"valor": valor})
+    await criar_notificacao(tenant_id, current_user['id'], "pagamento_confirmado", f"Pagamento confirmado: {event.get('title', '')} - R$ {valor:.2f}", "/dashboard/agenda/events")
+    return {"message": "Pagamento confirmado", "transacao_id": tx.id}
+
+# ==================== AGENDA: AVISOS ====================
+@api_router.post("/church/avisos")
+async def criar_aviso(data: AvisoBase, current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    if not tenant_id:
+        raise HTTPException(status_code=400, detail="Tenant ID não encontrado")
+    aviso = Aviso(**data.model_dump(), tenant_id=tenant_id, autor_id=current_user['id'])
+    doc = aviso.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    await db.avisos.insert_one(doc)
+    await criar_notificacao(tenant_id, current_user['id'], "aviso", f"Novo aviso: {aviso.titulo}", "/dashboard/agenda/announcements")
+    return aviso
+
+@api_router.get("/church/avisos")
+async def listar_avisos(status: Optional[str] = None, prioridade: Optional[str] = None, current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    query = {"tenant_id": tenant_id} if tenant_id else {}
+    if status and status != "all":
+        query["status"] = status
+    if prioridade and prioridade != "all":
+        query["prioridade"] = prioridade
+    avisos = await db.avisos.find(query, {"_id": 0}).sort([("fixado", -1), ("created_at", -1)]).to_list(200)
+    for av in avisos:
+        if av.get("departamento_id"):
+            dept = await db.departments.find_one({"id": av["departamento_id"]}, {"_id": 0, "name": 1})
+            av["departamento_nome"] = dept.get("name") if dept else ""
+        if av.get("grupo_id"):
+            grp = await db.groups.find_one({"id": av["grupo_id"]}, {"_id": 0, "name": 1})
+            av["grupo_nome"] = grp.get("name") if grp else ""
+    return avisos
+
+@api_router.put("/church/avisos/{aviso_id}")
+async def atualizar_aviso(aviso_id: str, updates: Dict[str, Any], current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    query = {"id": aviso_id}
+    if tenant_id:
+        query["tenant_id"] = tenant_id
+    updates['updated_at'] = datetime.now(timezone.utc).isoformat()
+    result = await db.avisos.update_one(query, {"$set": updates})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Aviso não encontrado")
+    return {"message": "Aviso atualizado"}
+
+@api_router.delete("/church/avisos/{aviso_id}")
+async def excluir_aviso(aviso_id: str, current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    query = {"id": aviso_id}
+    if tenant_id:
+        query["tenant_id"] = tenant_id
+    result = await db.avisos.delete_one(query)
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Aviso não encontrado")
+    return {"message": "Aviso removido"}
+
+# ==================== AGENDA: ANOTACOES PESSOAIS ====================
+@api_router.post("/church/anotacoes")
+async def criar_anotacao(data: AnotacaoBase, current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    if not tenant_id:
+        raise HTTPException(status_code=400, detail="Tenant ID não encontrado")
+    anotacao = Anotacao(**data.model_dump(), usuario_id=current_user['id'], tenant_id=tenant_id)
+    doc = anotacao.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    await db.anotacoes.insert_one(doc)
+    return anotacao
+
+@api_router.get("/church/anotacoes")
+async def listar_anotacoes(current_user: dict = Depends(require_church_admin)):
+    query = {"usuario_id": current_user['id']}
+    anotacoes = await db.anotacoes.find(query, {"_id": 0}).sort("created_at", -1).to_list(200)
+    return anotacoes
+
+@api_router.put("/church/anotacoes/{anotacao_id}")
+async def atualizar_anotacao(anotacao_id: str, updates: Dict[str, Any], current_user: dict = Depends(require_church_admin)):
+    query = {"id": anotacao_id, "usuario_id": current_user['id']}
+    updates['updated_at'] = datetime.now(timezone.utc).isoformat()
+    result = await db.anotacoes.update_one(query, {"$set": updates})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Anotação não encontrada")
+    return {"message": "Anotação atualizada"}
+
+@api_router.delete("/church/anotacoes/{anotacao_id}")
+async def excluir_anotacao(anotacao_id: str, current_user: dict = Depends(require_church_admin)):
+    query = {"id": anotacao_id, "usuario_id": current_user['id']}
+    result = await db.anotacoes.delete_one(query)
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Anotação não encontrada")
+    return {"message": "Anotação removida"}
+
+# ==================== AGENDA: NOTIFICACOES ====================
+@api_router.get("/church/notificacoes")
+async def listar_notificacoes(tipo: Optional[str] = None, status: Optional[str] = None, current_user: dict = Depends(require_church_admin)):
+    query = {"usuario_id": current_user['id'], "tenant_id": current_user.get('tenant_id')}
+    if tipo and tipo != "all":
+        query["tipo"] = tipo
+    if status and status != "all":
+        query["status"] = status
+    notifs = await db.notificacoes.find(query, {"_id": 0}).sort("data_criacao", -1).to_list(100)
+    return notifs
+
+@api_router.get("/church/notificacoes/count")
+async def contar_notificacoes_nao_lidas(current_user: dict = Depends(require_church_admin)):
+    count = await db.notificacoes.count_documents({"usuario_id": current_user['id'], "tenant_id": current_user.get('tenant_id'), "status": "nao_lida"})
+    return {"count": count}
+
+@api_router.put("/church/notificacoes/{notificacao_id}/lida")
+async def marcar_notificacao_lida(notificacao_id: str, current_user: dict = Depends(require_church_admin)):
+    result = await db.notificacoes.update_one({"id": notificacao_id, "usuario_id": current_user['id']}, {"$set": {"status": "lida"}})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Notificação não encontrada")
+    return {"message": "Notificação marcada como lida"}
+
+@api_router.put("/church/notificacoes/marcar-todas-lidas")
+async def marcar_todas_lidas(current_user: dict = Depends(require_church_admin)):
+    await db.notificacoes.update_many({"usuario_id": current_user['id'], "tenant_id": current_user.get('tenant_id'), "status": "nao_lida"}, {"$set": {"status": "lida"}})
+    return {"message": "Todas notificações marcadas como lidas"}
+
+@api_router.delete("/church/notificacoes/{notificacao_id}")
+async def excluir_notificacao(notificacao_id: str, current_user: dict = Depends(require_church_admin)):
+    result = await db.notificacoes.delete_one({"id": notificacao_id, "usuario_id": current_user['id']})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Notificação não encontrada")
+    return {"message": "Notificação removida"}
+
+# ==================== AGENDA: CALENDARIO UNIFICADO ====================
+@api_router.get("/church/calendario")
+async def calendario_unificado(
+    mes: Optional[int] = None, ano: Optional[int] = None,
+    department_id: Optional[str] = None, group_id: Optional[str] = None,
+    tipo: Optional[str] = None,
+    current_user: dict = Depends(require_church_admin),
+):
+    tenant_id = current_user.get('tenant_id')
+    now = datetime.now(timezone.utc)
+    target_month = mes or now.month
+    target_year = ano or now.year
+    start_date = f"{target_year}-{target_month:02d}-01"
+    if target_month == 12:
+        end_date = f"{target_year + 1}-01-01"
+    else:
+        end_date = f"{target_year}-{target_month + 1:02d}-01"
+    
+    items = []
+    
+    # Events
+    if not tipo or tipo in ("all", "evento"):
+        eq = {"tenant_id": tenant_id, "event_date": {"$gte": start_date, "$lt": end_date}}
+        if department_id:
+            eq["department_id"] = department_id
+        if group_id:
+            eq["group_id"] = group_id
+        events = await db.events.find(eq, {"_id": 0}).to_list(200)
+        for e in events:
+            items.append({"type": "evento", "date": e["event_date"], "time": e.get("event_time"), "title": e["title"], "id": e["id"], "color": "#3b82f6", "status": e.get("status", "active"), "is_paid": e.get("is_paid", False)})
+    
+    # Announcements
+    if not tipo or tipo in ("all", "aviso"):
+        aq = {"tenant_id": tenant_id, "status": "publicado"}
+        avisos = await db.avisos.find(aq, {"_id": 0}).to_list(100)
+        for a in avisos:
+            av_date = a.get("data_publicacao") or (a.get("created_at", "")[:10] if isinstance(a.get("created_at"), str) else start_date)
+            if start_date <= av_date < end_date:
+                items.append({"type": "aviso", "date": av_date, "title": a["titulo"], "id": a["id"], "color": "#f59e0b", "prioridade": a.get("prioridade", "normal")})
+    
+    # Birthdays (from members)
+    if not tipo or tipo in ("all", "aniversario"):
+        members = await db.members.find({"tenant_id": tenant_id}, {"_id": 0, "id": 1, "name": 1, "birth_date": 1}).to_list(1000)
+        for m in members:
+            bd = m.get("birth_date", "")
+            if bd and len(bd) >= 10:
+                bd_month = int(bd[5:7])
+                bd_day = bd[8:10]
+                if bd_month == target_month:
+                    items.append({"type": "aniversario", "date": f"{target_year}-{target_month:02d}-{bd_day}", "title": f"Aniversário: {m['name']}", "id": m["id"], "color": "#ec4899"})
+    
+    # Financial dates (due dates from pending transactions)
+    if not tipo or tipo in ("all", "financeiro"):
+        fq = {"tenant_id": tenant_id, "status": "pendente", "data": {"$gte": start_date, "$lt": end_date}}
+        txns = await db.transacoes.find(fq, {"_id": 0}).to_list(100)
+        for t in txns:
+            items.append({"type": "financeiro", "date": t["data"], "title": f"{'Receita' if t['tipo']=='receita' else 'Despesa'}: {t.get('descricao', 'Transação')} - R$ {t['valor']:.2f}", "id": t["id"], "color": "#10b981" if t["tipo"] == "receita" else "#ef4444"})
+    
+    # Ensino - class dates
+    if not tipo or tipo in ("all", "ensino"):
+        turmas = await db.turmas.find({"tenant_id": tenant_id, "data_inicio": {"$gte": start_date, "$lt": end_date}}, {"_id": 0}).to_list(50)
+        for t in turmas:
+            items.append({"type": "ensino", "date": t.get("data_inicio", start_date), "title": f"Turma: {t['nome']}", "id": t["id"], "color": "#8b5cf6"})
+    
+    items.sort(key=lambda x: x["date"])
+    return {"items": items, "month": target_month, "year": target_year}
+
+# ==================== AGENDA: EXPORTAR ====================
+@api_router.get("/church/agenda/exportar/eventos")
+async def exportar_eventos(data_inicio: Optional[str] = None, data_fim: Optional[str] = None, current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    query = {"tenant_id": tenant_id} if tenant_id else {}
+    if data_inicio:
+        query.setdefault("event_date", {})["$gte"] = data_inicio
+    if data_fim:
+        query.setdefault("event_date", {})["$lte"] = data_fim
+    events = await db.events.find(query, {"_id": 0}).sort("event_date", 1).to_list(500)
+    return {"events": events, "total": len(events)}
+
+@api_router.get("/church/agenda/exportar/inscricoes/{event_id}")
+async def exportar_inscricoes(event_id: str, current_user: dict = Depends(require_church_admin)):
+    tenant_id = current_user.get('tenant_id')
+    inscricoes = await db.evento_inscricoes.find({"evento_id": event_id, "tenant_id": tenant_id}, {"_id": 0}).to_list(500)
+    for ins in inscricoes:
+        m = await db.members.find_one({"id": ins["membro_id"]}, {"_id": 0, "name": 1, "email": 1, "phone": 1})
+        ins["membro_nome"] = m.get("name") if m else ""
+        ins["membro_email"] = m.get("email") if m else ""
+        ins["membro_phone"] = m.get("phone") if m else ""
+    event = await db.events.find_one({"id": event_id}, {"_id": 0, "title": 1})
+    return {"inscricoes": inscricoes, "evento_titulo": event.get("title") if event else "", "total": len(inscricoes)}
 
 
 # ==================== FINANCIAL - HELPER: LOG ====================
