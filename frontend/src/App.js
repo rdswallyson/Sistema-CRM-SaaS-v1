@@ -183,6 +183,14 @@ const AppRoutes = () => {
                 
                 <Route path="events" element={<EventsPage />} />
                 
+                {/* Agenda sub-routes */}
+                <Route path="agenda/calendar" element={<CalendarioPage />} />
+                <Route path="agenda/events" element={<EventosPage />} />
+                <Route path="agenda/announcements" element={<MuralAvisosPage />} />
+                <Route path="agenda/notes" element={<AnotacoesPage />} />
+                <Route path="agenda/notifications" element={<NotificacoesPage />} />
+                <Route path="agenda/export" element={<AgendaExportarPage />} />
+                
                 {/* Financial sub-routes */}
                 <Route path="financial" element={<FinResumo />} />
                 <Route path="financial/transactions" element={<FinTransacoes />} />
