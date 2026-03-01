@@ -78,6 +78,20 @@ export default function RegisterPage() {
                     <CardContent>
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div className="space-y-2">
+                                <Label htmlFor="church_name">Nome da Igreja</Label>
+                                <Input
+                                    id="church_name"
+                                    name="church_name"
+                                    type="text"
+                                    placeholder="Ex: Igreja Vida Nova"
+                                    value={formData.church_name}
+                                    onChange={handleChange}
+                                    required
+                                    className="h-12"
+                                    data-testid="register-church-name-input"
+                                />
+                            </div>
+                            <div className="space-y-2">
                                 <Label htmlFor="name">Nome completo</Label>
                                 <Input
                                     id="name"
