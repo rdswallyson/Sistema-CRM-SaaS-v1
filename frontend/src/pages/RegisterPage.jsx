@@ -14,6 +14,7 @@ export default function RegisterPage() {
         email: '',
         password: '',
         confirmPassword: '',
+        church_name: '',
     });
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
