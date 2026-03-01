@@ -156,7 +156,7 @@ class TestAgendaModule:
             "email": f"test_insc_{uuid.uuid4().hex[:6]}@test.com",
             "phone": "11999990000",
             "birth_date": "1990-05-15",
-            "status": "active"
+            "status": "member"  # Valid values: visitor, new_convert, member, leader
         }
         response = requests.post(f"{BASE_URL}/api/church/members", json=payload, headers=self.get_headers())
         assert response.status_code == 200, f"Create member failed: {response.text}"
@@ -201,11 +201,12 @@ class TestAgendaModule:
         member_payload = {
             "name": f"TEST_Member_Paid_{uuid.uuid4().hex[:6]}",
             "email": f"test_paid_{uuid.uuid4().hex[:6]}@test.com",
-            "status": "active"
+            "status": "member"  # Valid values: visitor, new_convert, member, leader
         }
         member_response = requests.post(f"{BASE_URL}/api/church/members", json=member_payload, headers=self.get_headers())
-        assert member_response.status_code == 200
+        assert member_response.status_code == 200, f"Create paid member failed: {member_response.text}"
         paid_member_id = member_response.json()["id"]
+        TestAgendaModule.paid_test_member_id = paid_member_id  # Store for cleanup
         
         payload = {"membro_id": paid_member_id, "status_pagamento": "pendente"}
         response = requests.post(f"{BASE_URL}/api/church/events/{TestAgendaModule.test_paid_event_id}/inscricoes", 
