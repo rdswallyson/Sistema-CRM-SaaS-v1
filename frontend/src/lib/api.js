@@ -195,13 +195,45 @@ export const churchAPI = {
     updateMinistry: (id, data) => api.put(`/church/ministries/${id}`, data),
     deleteMinistry: (id) => api.delete(`/church/ministries/${id}`),
     
-    // Events
-    getEvents: () => api.get('/church/events'),
+    // Events (Enhanced Agenda)
+    getEvents: (params) => api.get('/church/events', { params }),
     getEvent: (id) => api.get(`/church/events/${id}`),
     createEvent: (data) => api.post('/church/events', data),
     updateEvent: (id, data) => api.put(`/church/events/${id}`, data),
     deleteEvent: (id) => api.delete(`/church/events/${id}`),
     eventCheckin: (eventId, memberId) => api.post(`/church/events/${eventId}/checkin?member_id=${memberId}`),
+    
+    // Event Inscriptions
+    getEventInscricoes: (eventId) => api.get(`/church/events/${eventId}/inscricoes`),
+    createEventInscricao: (eventId, data) => api.post(`/church/events/${eventId}/inscricoes`, data),
+    deleteEventInscricao: (eventId, inscricaoId) => api.delete(`/church/events/${eventId}/inscricoes/${inscricaoId}`),
+    confirmarPagamentoInscricao: (eventId, inscricaoId) => api.put(`/church/events/${eventId}/inscricoes/${inscricaoId}/confirmar-pagamento`),
+    
+    // Avisos (Announcements)
+    getAvisos: (params) => api.get('/church/avisos', { params }),
+    createAviso: (data) => api.post('/church/avisos', data),
+    updateAviso: (id, data) => api.put(`/church/avisos/${id}`, data),
+    deleteAviso: (id) => api.delete(`/church/avisos/${id}`),
+    
+    // Anotacoes (Personal Notes)
+    getAnotacoes: () => api.get('/church/anotacoes'),
+    createAnotacao: (data) => api.post('/church/anotacoes', data),
+    updateAnotacao: (id, data) => api.put(`/church/anotacoes/${id}`, data),
+    deleteAnotacao: (id) => api.delete(`/church/anotacoes/${id}`),
+    
+    // Notificacoes
+    getNotificacoes: (params) => api.get('/church/notificacoes', { params }),
+    getNotificacoesCount: () => api.get('/church/notificacoes/count'),
+    marcarNotificacaoLida: (id) => api.put(`/church/notificacoes/${id}/lida`),
+    marcarTodasLidas: () => api.put('/church/notificacoes/marcar-todas-lidas'),
+    deleteNotificacao: (id) => api.delete(`/church/notificacoes/${id}`),
+    
+    // Calendario
+    getCalendario: (params) => api.get('/church/calendario', { params }),
+    
+    // Agenda Export
+    exportarEventos: (params) => api.get('/church/agenda/exportar/eventos', { params }),
+    exportarInscricoes: (eventId) => api.get(`/church/agenda/exportar/inscricoes/${eventId}`),
     
     // Donations
     getDonations: () => api.get('/church/donations'),
