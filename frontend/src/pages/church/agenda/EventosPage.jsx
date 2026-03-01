@@ -161,21 +161,21 @@ export default function EventosPage() {
                                 <div><Label>Local</Label><Input value={formData.location} onChange={e => setFormData(p => ({...p, location: e.target.value}))} /></div>
                                 <div><Label>Limite de Participantes</Label><Input type="number" value={formData.max_capacity} onChange={e => setFormData(p => ({...p, max_capacity: e.target.value}))} /></div>
                                 <div><Label>Departamento</Label>
-                                    <Select value={formData.department_id} onValueChange={v => setFormData(p => ({...p, department_id: v}))}>
+                                    <Select value={formData.department_id || '_none_'} onValueChange={v => setFormData(p => ({...p, department_id: v === '_none_' ? '' : v}))}>
                                         <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                                        <SelectContent><SelectItem value="">Nenhum</SelectItem>{departments.map(d => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}</SelectContent>
+                                        <SelectContent><SelectItem value="_none_">Nenhum</SelectItem>{departments.map(d => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}</SelectContent>
                                     </Select>
                                 </div>
                                 <div><Label>Grupo</Label>
-                                    <Select value={formData.group_id} onValueChange={v => setFormData(p => ({...p, group_id: v}))}>
+                                    <Select value={formData.group_id || '_none_'} onValueChange={v => setFormData(p => ({...p, group_id: v === '_none_' ? '' : v}))}>
                                         <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                                        <SelectContent><SelectItem value="">Nenhum</SelectItem>{groups.map(g => <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>)}</SelectContent>
+                                        <SelectContent><SelectItem value="_none_">Nenhum</SelectItem>{groups.map(g => <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>)}</SelectContent>
                                     </Select>
                                 </div>
                                 <div><Label>Responsavel</Label>
-                                    <Select value={formData.responsavel_id} onValueChange={v => setFormData(p => ({...p, responsavel_id: v}))}>
+                                    <Select value={formData.responsavel_id || '_none_'} onValueChange={v => setFormData(p => ({...p, responsavel_id: v === '_none_' ? '' : v}))}>
                                         <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                                        <SelectContent><SelectItem value="">Nenhum</SelectItem>{members.map(m => <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>)}</SelectContent>
+                                        <SelectContent><SelectItem value="_none_">Nenhum</SelectItem>{members.map(m => <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>)}</SelectContent>
                                     </Select>
                                 </div>
                                 <div><Label>Status</Label>
@@ -191,21 +191,21 @@ export default function EventosPage() {
                                     <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div><Label>Valor (R$) *</Label><Input type="number" step="0.01" value={formData.price} onChange={e => setFormData(p => ({...p, price: e.target.value}))} data-testid="event-price-input" /></div>
                                         <div><Label>Conta Financeira</Label>
-                                            <Select value={formData.conta_financeira_id} onValueChange={v => setFormData(p => ({...p, conta_financeira_id: v}))}>
+                                            <Select value={formData.conta_financeira_id || '_none_'} onValueChange={v => setFormData(p => ({...p, conta_financeira_id: v === '_none_' ? '' : v}))}>
                                                 <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                                                <SelectContent><SelectItem value="">Nenhuma</SelectItem>{finContas.map(c => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}</SelectContent>
+                                                <SelectContent><SelectItem value="_none_">Nenhuma</SelectItem>{finContas.map(c => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}</SelectContent>
                                             </Select>
                                         </div>
                                         <div><Label>Categoria Financeira</Label>
-                                            <Select value={formData.categoria_financeira_id} onValueChange={v => setFormData(p => ({...p, categoria_financeira_id: v}))}>
+                                            <Select value={formData.categoria_financeira_id || '_none_'} onValueChange={v => setFormData(p => ({...p, categoria_financeira_id: v === '_none_' ? '' : v}))}>
                                                 <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                                                <SelectContent><SelectItem value="">Nenhuma</SelectItem>{finCategorias.map(c => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}</SelectContent>
+                                                <SelectContent><SelectItem value="_none_">Nenhuma</SelectItem>{finCategorias.map(c => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}</SelectContent>
                                             </Select>
                                         </div>
                                         <div><Label>Centro de Custo</Label>
-                                            <Select value={formData.centro_custo_id} onValueChange={v => setFormData(p => ({...p, centro_custo_id: v}))}>
+                                            <Select value={formData.centro_custo_id || '_none_'} onValueChange={v => setFormData(p => ({...p, centro_custo_id: v === '_none_' ? '' : v}))}>
                                                 <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                                                <SelectContent><SelectItem value="">Nenhum</SelectItem>{finCentros.map(c => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}</SelectContent>
+                                                <SelectContent><SelectItem value="_none_">Nenhum</SelectItem>{finCentros.map(c => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}</SelectContent>
                                             </Select>
                                         </div>
                                     </CardContent>
