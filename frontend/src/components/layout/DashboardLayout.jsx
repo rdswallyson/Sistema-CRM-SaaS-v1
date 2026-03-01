@@ -82,11 +82,25 @@ const defaultTeachingSubItems = [
     { path: '/dashboard/teaching/dashboard', key: 'teaching_dashboard', defaultLabel: 'Painel Acadêmico', icon: BarChart3 },
 ];
 
+const defaultFinancialSubItems = [
+    { path: '/dashboard/financial', key: 'fin_resumo', defaultLabel: 'Resumo', icon: LayoutDashboard, exact: true },
+    { path: '/dashboard/financial/transactions', key: 'fin_transacoes', defaultLabel: 'Transacoes', icon: CreditCard },
+    { path: '/dashboard/financial/reports', key: 'fin_relatorios', defaultLabel: 'Relatorios', icon: FileText },
+    { path: '/dashboard/financial/history', key: 'fin_historico', defaultLabel: 'Historico', icon: ClipboardList },
+    { path: '/dashboard/financial/categories', key: 'fin_categorias', defaultLabel: 'Categorias', icon: Tag },
+    { path: '/dashboard/financial/accounts', key: 'fin_contas', defaultLabel: 'Contas', icon: Briefcase },
+    { path: '/dashboard/financial/contacts', key: 'fin_contatos', defaultLabel: 'Contatos', icon: Users },
+    { path: '/dashboard/financial/cost-centers', key: 'fin_centros', defaultLabel: 'Centros de Custos', icon: FolderTree },
+    { path: '/dashboard/financial/lock-periods', key: 'fin_bloqueio', defaultLabel: 'Bloqueio', icon: Layers },
+    { path: '/dashboard/financial/import', key: 'fin_importar', defaultLabel: 'Importar', icon: Download },
+    { path: '/dashboard/financial/export', key: 'fin_exportar', defaultLabel: 'Exportar', icon: Download },
+    { path: '/dashboard/financial/strategic', key: 'fin_painel', defaultLabel: 'Painel Estrategico', icon: BarChart3 },
+];
+
 const churchNavBase = [
     { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, exact: true },
     { path: '/dashboard/departments', label: 'Departamentos', icon: Church },
     { path: '/dashboard/events', label: 'Eventos', icon: Calendar },
-    { path: '/dashboard/financial', label: 'Financeiro', icon: DollarSign },
     { path: '/dashboard/discipleship', label: 'Discipulado', icon: BookOpen },
     { path: '/dashboard/communication', label: 'Comunicação', icon: MessageSquare },
     { path: '/dashboard/settings', label: 'Configurações', icon: Settings },
