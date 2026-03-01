@@ -113,10 +113,9 @@ const defaultAgendaSubItems = [
 const churchNavBase = [
     { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, exact: true },
     { path: '/dashboard/departments', label: 'Departamentos', icon: Church },
-    { path: '/dashboard/events', label: 'Eventos', icon: Calendar },
     { path: '/dashboard/discipleship', label: 'Discipulado', icon: BookOpen },
-    { path: '/dashboard/communication', label: 'Comunicação', icon: MessageSquare },
-    { path: '/dashboard/settings', label: 'Configurações', icon: Settings },
+    { path: '/dashboard/communication', label: 'Comunicacao', icon: MessageSquare },
+    { path: '/dashboard/settings', label: 'Configuracoes', icon: Settings },
 ];
 
 export default function DashboardLayout({ variant = 'church' }) {
