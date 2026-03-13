@@ -34,7 +34,7 @@ async def upload_media(
     referencia_id: Optional[str] = None,
     current_user: dict = Depends(require_church_admin)
 ):
-    org_id = current_user.get("tenant_id")
+    org_id = current_user.get("organizacao_id")
     user_id = current_user.get("user_id")
     
     # Validate file
@@ -78,7 +78,7 @@ async def list_media(
     search: Optional[str] = None,
     current_user: dict = Depends(require_church_admin)
 ):
-    org_id = current_user.get("tenant_id")
+    org_id = current_user.get("organizacao_id")
     query = {"organizacao_id": org_id, "deletado_em": None}
     
     if tipo: query["tipo"] = tipo
@@ -90,7 +90,7 @@ async def list_media(
 
 @router.get("/library-stats")
 async def get_library_stats(current_user: dict = Depends(require_church_admin)):
-    org_id = current_user.get("tenant_id")
+    org_id = current_user.get("organizacao_id")
     query = {"organizacao_id": org_id, "deletado_em": None}
     
     total_files = await db.medias.count_documents(query)
@@ -119,7 +119,7 @@ async def get_library_stats(current_user: dict = Depends(require_church_admin)):
 # ==================== FORMS ====================
 @router.post("/forms")
 async def create_form(data: Dict[str, Any], current_user: dict = Depends(require_church_admin)):
-    org_id = current_user.get("tenant_id")
+    org_id = current_user.get("organizacao_id")
     user_id = current_user.get("user_id")
     
     form = Form(**data, organizacao_id=org_id, usuario_id=user_id)
@@ -130,7 +130,7 @@ async def create_form(data: Dict[str, Any], current_user: dict = Depends(require
 
 @router.post("/forms/{form_id}/fields")
 async def add_form_field(form_id: str, data: Dict[str, Any], current_user: dict = Depends(require_church_admin)):
-    org_id = current_user.get("tenant_id")
+    org_id = current_user.get("organizacao_id")
     
     form = await db.forms.find_one({"id": form_id, "organizacao_id": org_id, "deletado_em": None})
     if not form:
@@ -162,7 +162,7 @@ async def submit_form_response(form_id: str, data: Dict[str, Any]):
 
 @router.get("/forms/{form_id}/responses")
 async def get_form_responses(form_id: str, current_user: dict = Depends(require_church_admin)):
-    org_id = current_user.get("tenant_id")
+    org_id = current_user.get("organizacao_id")
     
     form = await db.forms.find_one({"id": form_id, "organizacao_id": org_id, "deletado_em": None})
     if not form:
@@ -174,7 +174,7 @@ async def get_form_responses(form_id: str, current_user: dict = Depends(require_
 # ==================== ALBUMS ====================
 @router.post("/albums")
 async def create_album(data: Dict[str, Any], current_user: dict = Depends(require_church_admin)):
-    org_id = current_user.get("tenant_id")
+    org_id = current_user.get("organizacao_id")
     user_id = current_user.get("user_id")
     
     album = Album(**data, organizacao_id=org_id, usuario_id=user_id)
@@ -185,7 +185,7 @@ async def create_album(data: Dict[str, Any], current_user: dict = Depends(requir
 
 @router.get("/albums")
 async def list_albums(current_user: dict = Depends(require_church_admin)):
-    org_id = current_user.get("tenant_id")
+    org_id = current_user.get("organizacao_id")
     albums = await db.albums.find({"organizacao_id": org_id, "deletado_em": None}).to_list(100)
     
     for album in albums:

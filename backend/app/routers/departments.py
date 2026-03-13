@@ -15,7 +15,7 @@ async def list_departments(
     search: Optional[str] = None,
     current_user: dict = Depends(require_church_admin)
 ):
-    org_id = current_user.get("tenant_id")
+    org_id = current_user.get("organizacao_id")
     query = {"organizacao_id": org_id, "deletado_em": None}
     
     if status:
@@ -49,7 +49,7 @@ async def list_departments(
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
 async def create_department(data: DepartmentCreate, current_user: dict = Depends(require_church_admin)):
-    org_id = current_user.get("tenant_id")
+    org_id = current_user.get("organizacao_id")
     dept = Department(**data.model_dump(), organizacao_id=org_id)
     doc = dept.model_dump()
     await db.departments.insert_one(doc)
@@ -57,7 +57,7 @@ async def create_department(data: DepartmentCreate, current_user: dict = Depends
 
 @router.get("/{dept_id}")
 async def get_department(dept_id: str, current_user: dict = Depends(require_church_admin)):
-    org_id = current_user.get("tenant_id")
+    org_id = current_user.get("organizacao_id")
     dept = await db.departments.find_one({"id": dept_id, "organizacao_id": org_id, "deletado_em": None})
     if not dept:
         raise HTTPException(status_code=404, detail="Departamento não encontrado")
@@ -77,7 +77,7 @@ async def get_department(dept_id: str, current_user: dict = Depends(require_chur
 
 @router.put("/{dept_id}")
 async def update_department(dept_id: str, data: DepartmentUpdate, current_user: dict = Depends(require_church_admin)):
-    org_id = current_user.get("tenant_id")
+    org_id = current_user.get("organizacao_id")
     query = {"id": dept_id, "organizacao_id": org_id, "deletado_em": None}
     
     update_data = {k: v for k, v in data.model_dump().items() if v is not None}
@@ -92,7 +92,7 @@ async def update_department(dept_id: str, data: DepartmentUpdate, current_user: 
 
 @router.delete("/{dept_id}")
 async def delete_department(dept_id: str, current_user: dict = Depends(require_church_admin)):
-    org_id = current_user.get("tenant_id")
+    org_id = current_user.get("organizacao_id")
     query = {"id": dept_id, "organizacao_id": org_id, "deletado_em": None}
     
     # Soft delete department
@@ -110,7 +110,7 @@ async def delete_department(dept_id: str, current_user: dict = Depends(require_c
 
 @router.post("/{dept_id}/members/{member_id}")
 async def add_member_to_department(dept_id: str, member_id: str, current_user: dict = Depends(require_church_admin)):
-    org_id = current_user.get("tenant_id")
+    org_id = current_user.get("organizacao_id")
     
     # Check if both exist
     dept = await db.departments.find_one({"id": dept_id, "organizacao_id": org_id, "deletado_em": None})
@@ -131,7 +131,7 @@ async def add_member_to_department(dept_id: str, member_id: str, current_user: d
 
 @router.delete("/{dept_id}/members/{member_id}")
 async def remove_member_from_department(dept_id: str, member_id: str, current_user: dict = Depends(require_church_admin)):
-    org_id = current_user.get("tenant_id")
+    org_id = current_user.get("organizacao_id")
     
     result = await db.department_members.update_one(
         {"department_id": dept_id, "member_id": member_id, "organizacao_id": org_id, "deletado_em": None},

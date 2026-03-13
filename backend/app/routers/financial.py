@@ -40,9 +40,7 @@ async def log_financial_action(request: Request, org_id: str, user_id: str, acti
 
 @router.post("/transactions", status_code=status.HTTP_201_CREATED)
 async def create_transaction(request: Request, data: TransactionBase, current_user: dict = Depends(require_church_admin)):
-    org_id = current_user.get("tenant_id")
-    user_id = current_user.get("user_id")
-    
+    org_id = current_user.get("organizacao_id")    
     # 1. Check Lock Period
     await check_period_locked(org_id, data.data)
     
@@ -72,7 +70,7 @@ async def create_transaction(request: Request, data: TransactionBase, current_us
 
 @router.post("/transactions/{trans_id}/reverse")
 async def reverse_transaction(request: Request, trans_id: str, current_user: dict = Depends(require_church_admin)):
-    org_id = current_user.get("tenant_id")
+    org_id = current_user.get("organizacao_id")
     user_id = current_user.get("user_id")
     
     original = await db.transactions.find_one({"id": trans_id, "organizacao_id": org_id, "deletado_em": None})
@@ -121,7 +119,7 @@ async def reverse_transaction(request: Request, trans_id: str, current_user: dic
 
 @router.get("/strategic-panel")
 async def get_financial_strategic_panel(current_user: dict = Depends(require_church_admin)):
-    org_id = current_user.get("tenant_id")
+    org_id = current_user.get("organizacao_id")
     tq = {"organizacao_id": org_id, "deletado_em": None, "status": TransactionStatus.CONFIRMADO}
     
     # Simplified stats for now

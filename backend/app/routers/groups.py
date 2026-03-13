@@ -18,7 +18,7 @@ async def list_groups(
     search: Optional[str] = None,
     current_user: dict = Depends(require_church_admin)
 ):
-    org_id = current_user.get("tenant_id")
+    org_id = current_user.get("organizacao_id")
     query = {"organizacao_id": org_id, "deletado_em": None}
     
     if categoria_id: query["categoria_id"] = categoria_id
@@ -39,7 +39,7 @@ async def list_groups(
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
 async def create_group(data: GroupCreate, current_user: dict = Depends(require_church_admin)):
-    org_id = current_user.get("tenant_id")
+    org_id = current_user.get("organizacao_id")
     
     # Rule: Leader must be active
     lider = await db.members.find_one({"id": data.lider_id, "organizacao_id": org_id, "deletado_em": None})
@@ -53,7 +53,7 @@ async def create_group(data: GroupCreate, current_user: dict = Depends(require_c
 
 @router.get("/strategic-panel")
 async def get_strategic_panel(current_user: dict = Depends(require_church_admin)):
-    org_id = current_user.get("tenant_id")
+    org_id = current_user.get("organizacao_id")
     tq = {"organizacao_id": org_id, "deletado_em": None}
     
     total_groups = await db.groups.count_documents(tq)
@@ -79,7 +79,7 @@ async def get_strategic_panel(current_user: dict = Depends(require_church_admin)
 
 @router.get("/{group_id}")
 async def get_group(group_id: str, current_user: dict = Depends(require_church_admin)):
-    org_id = current_user.get("tenant_id")
+    org_id = current_user.get("organizacao_id")
     group = await db.groups.find_one({"id": group_id, "organizacao_id": org_id, "deletado_em": None})
     if not group:
         raise HTTPException(status_code=404, detail="Grupo não encontrado")
@@ -97,7 +97,7 @@ async def get_group(group_id: str, current_user: dict = Depends(require_church_a
 
 @router.put("/{group_id}")
 async def update_group(group_id: str, data: GroupUpdate, current_user: dict = Depends(require_church_admin)):
-    org_id = current_user.get("tenant_id")
+    org_id = current_user.get("organizacao_id")
     query = {"id": group_id, "organizacao_id": org_id, "deletado_em": None}
     
     if data.lider_id:
@@ -116,7 +116,7 @@ async def update_group(group_id: str, data: GroupUpdate, current_user: dict = De
 
 @router.delete("/{group_id}")
 async def delete_group(group_id: str, current_user: dict = Depends(require_church_admin)):
-    org_id = current_user.get("tenant_id")
+    org_id = current_user.get("organizacao_id")
     query = {"id": group_id, "organizacao_id": org_id, "deletado_em": None}
     
     result = await db.groups.update_one(query, {"$set": {"deletado_em": datetime.now(timezone.utc)}})

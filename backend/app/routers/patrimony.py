@@ -16,13 +16,13 @@ router = APIRouter(prefix="/church/patrimony", tags=["Patrimônio"])
 # ==================== CATEGORIES ====================
 @router.get("/categories")
 async def list_categories(current_user: dict = Depends(require_church_admin)):
-    org_id = current_user.get("tenant_id")
+    org_id = current_user.get("organizacao_id")
     categories = await db.patrimony_categories.find({"organizacao_id": org_id, "deletado_em": None}).to_list(100)
     return success_response(data=categories)
 
 @router.post("/categories")
 async def create_category(data: Dict[str, Any], current_user: dict = Depends(require_church_admin)):
-    org_id = current_user.get("tenant_id")
+    org_id = current_user.get("organizacao_id")
     category = PatrimonyCategory(**data, organizacao_id=org_id)
     doc = category.model_dump()
     await db.patrimony_categories.insert_one(doc)
@@ -31,13 +31,13 @@ async def create_category(data: Dict[str, Any], current_user: dict = Depends(req
 # ==================== LOCATIONS ====================
 @router.get("/locations")
 async def list_locations(current_user: dict = Depends(require_church_admin)):
-    org_id = current_user.get("tenant_id")
+    org_id = current_user.get("organizacao_id")
     locations = await db.patrimony_locations.find({"organizacao_id": org_id, "deletado_em": None}).to_list(100)
     return success_response(data=locations)
 
 @router.post("/locations")
 async def create_location(data: Dict[str, Any], current_user: dict = Depends(require_church_admin)):
-    org_id = current_user.get("tenant_id")
+    org_id = current_user.get("organizacao_id")
     location = PatrimonyLocation(**data, organizacao_id=org_id)
     doc = location.model_dump()
     await db.patrimony_locations.insert_one(doc)
@@ -54,7 +54,7 @@ async def list_patrimony(
     local_id: Optional[str] = None,
     current_user: dict = Depends(require_church_admin)
 ):
-    org_id = current_user.get("tenant_id")
+    org_id = current_user.get("organizacao_id")
     query = {"organizacao_id": org_id, "deletado_em": None}
     
     if search:
@@ -84,7 +84,7 @@ async def list_patrimony(
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
 async def create_patrimony(data: Dict[str, Any], current_user: dict = Depends(require_church_admin)):
-    org_id = current_user.get("tenant_id")
+    org_id = current_user.get("organizacao_id")
     
     # Auto-generate internal code if not provided
     if not data.get("codigo_interno"):
@@ -108,7 +108,7 @@ async def create_patrimony(data: Dict[str, Any], current_user: dict = Depends(re
 
 @router.get("/{item_id}")
 async def get_patrimony(item_id: str, current_user: dict = Depends(require_church_admin)):
-    org_id = current_user.get("tenant_id")
+    org_id = current_user.get("organizacao_id")
     item = await db.patrimony.find_one({"id": item_id, "organizacao_id": org_id, "deletado_em": None})
     if not item:
         raise HTTPException(status_code=404, detail="Patrimônio não encontrado")
@@ -116,7 +116,7 @@ async def get_patrimony(item_id: str, current_user: dict = Depends(require_churc
 
 @router.put("/{item_id}")
 async def update_patrimony(item_id: str, data: Dict[str, Any], current_user: dict = Depends(require_church_admin)):
-    org_id = current_user.get("tenant_id")
+    org_id = current_user.get("organizacao_id")
     query = {"id": item_id, "organizacao_id": org_id, "deletado_em": None}
     
     existing = await db.patrimony.find_one(query)
@@ -133,7 +133,7 @@ async def update_patrimony(item_id: str, data: Dict[str, Any], current_user: dic
 # ==================== MOVEMENTS ====================
 @router.post("/{item_id}/move")
 async def move_patrimony(item_id: str, data: Dict[str, Any], current_user: dict = Depends(require_church_admin)):
-    org_id = current_user.get("tenant_id")
+    org_id = current_user.get("organizacao_id")
     user_id = current_user.get("user_id")
     
     item = await db.patrimony.find_one({"id": item_id, "organizacao_id": org_id, "deletado_em": None})
@@ -168,14 +168,14 @@ async def move_patrimony(item_id: str, data: Dict[str, Any], current_user: dict 
 
 @router.get("/{item_id}/movements")
 async def list_movements(item_id: str, current_user: dict = Depends(require_church_admin)):
-    org_id = current_user.get("tenant_id")
+    org_id = current_user.get("organizacao_id")
     movements = await db.patrimony_movements.find({"patrimonio_id": item_id, "organizacao_id": org_id}).sort("data_movimentacao", -1).to_list(100)
     return success_response(data=movements)
 
 # ==================== MAINTENANCE ====================
 @router.post("/{item_id}/maintenance")
 async def register_maintenance(item_id: str, data: Dict[str, Any], current_user: dict = Depends(require_church_admin)):
-    org_id = current_user.get("tenant_id")
+    org_id = current_user.get("organizacao_id")
     user_id = current_user.get("user_id")
     
     item = await db.patrimony.find_one({"id": item_id, "organizacao_id": org_id, "deletado_em": None})
@@ -239,7 +239,7 @@ async def register_maintenance(item_id: str, data: Dict[str, Any], current_user:
 
 @router.get("/dashboard/stats")
 async def patrimony_dashboard(current_user: dict = Depends(require_church_admin)):
-    org_id = current_user.get("tenant_id")
+    org_id = current_user.get("organizacao_id")
     
     # Total items and value
     pipeline_total = [

@@ -16,7 +16,7 @@ async def get_calendar_events(
     tipo: Optional[EventType] = None,
     current_user: dict = Depends(require_church_admin)
 ):
-    org_id = current_user.get("tenant_id")
+    org_id = current_user.get("organizacao_id")
     query = {
         "organizacao_id": org_id,
         "deletado_em": None,
@@ -36,7 +36,7 @@ async def get_calendar_events(
 
 @router.post("/events", status_code=status.HTTP_201_CREATED)
 async def create_event(data: EventBase, current_user: dict = Depends(require_church_admin)):
-    org_id = current_user.get("tenant_id")
+    org_id = current_user.get("organizacao_id")
     event = Event(**data.model_dump(), organizacao_id=org_id)
     doc = event.model_dump()
     await db.events.insert_one(doc)
@@ -84,7 +84,7 @@ async def mark_all_read(current_user: dict = Depends(get_current_user)):
 
 @router.get("/announcements")
 async def list_announcements(current_user: dict = Depends(require_church_admin)):
-    org_id = current_user.get("tenant_id")
+    org_id = current_user.get("organizacao_id")
     query = {"organizacao_id": org_id, "deletado_em": None}
     
     announcements = await db.announcements.find(query).sort([("fixado", -1), ("criado_em", -1)]).to_list(100)

@@ -43,6 +43,34 @@ export const authAPI = {
     getMe: () => api.get('/auth/me'),
 };
 
+// Master Panel API
+export const masterAPI = {
+    // Organizations
+    getOrganizations: (params) => api.get('/master/organizacoes', { params }),
+    getOrganization: (id) => api.get(`/master/organizacoes/${id}`),
+    createOrganization: (data) => api.post('/master/organizacoes', data),
+    updateOrganization: (id, data) => api.put(`/master/organizacoes/${id}`, data),
+    deleteOrganization: (id) => api.delete(`/master/organizacoes/${id}`),
+    
+    // Plans
+    getPlans: () => api.get('/master/planos'),
+    createPlan: (data) => api.post('/master/planos', data),
+    updatePlan: (id, data) => api.put(`/master/planos/${id}`, data),
+    
+    // Subscriptions
+    createSubscription: (data) => api.post('/master/assinaturas', data),
+    getSubscriptions: (orgId) => api.get(`/master/assinaturas/${orgId}`),
+    
+    // Master Users
+    getMasterUsers: (params) => api.get('/master/usuarios-master', { params }),
+    createMasterUser: (data) => api.post('/master/usuarios-master', data),
+    updateMasterUser: (id, data) => api.put(`/master/usuarios-master/${id}`, data),
+    
+    // Dashboard
+    getDashboardStats: () => api.get('/master/dashboard/stats'),
+    getAccessLogs: (params) => api.get('/master/logs-acesso', { params }),
+};
+
 // Super Admin API
 export const adminAPI = {
     // Tenants

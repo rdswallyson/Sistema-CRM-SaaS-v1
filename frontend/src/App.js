@@ -7,6 +7,7 @@ import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import SuperAdminDashboard from "./pages/admin/SuperAdminDashboard";
+import MasterPanelDashboard from "./pages/admin/MasterPanelDashboard";
 import ChurchesManagement from "./pages/admin/ChurchesManagement";
 import PlansManagement from "./pages/admin/PlansManagement";
 import PromotionsManagement from "./pages/admin/PromotionsManagement";
@@ -127,6 +128,7 @@ const AppRoutes = () => {
                 }
             >
                 <Route index element={<SuperAdminDashboard />} />
+                <Route path="master" element={<MasterPanelDashboard />} />
                 <Route path="churches" element={<ChurchesManagement />} />
                 <Route path="plans" element={<PlansManagement />} />
                 <Route path="promotions" element={<PromotionsManagement />} />

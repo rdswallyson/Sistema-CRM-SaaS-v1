@@ -34,7 +34,7 @@ async def list_members(
     filial_id: Optional[str] = None,
     current_user: dict = Depends(require_church_admin)
 ):
-    org_id = current_user.get("tenant_id")
+    org_id = current_user.get("organizacao_id")
     query = {"organizacao_id": org_id, "deletado_em": None}
     
     if search:
@@ -70,7 +70,7 @@ async def list_members(
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
 async def create_member(data: MemberCreate, current_user: dict = Depends(require_church_admin)):
-    org_id = current_user.get("tenant_id")
+    org_id = current_user.get("organizacao_id")
     
     if data.cpf:
         if not validate_cpf(data.cpf):
@@ -92,7 +92,7 @@ async def create_member(data: MemberCreate, current_user: dict = Depends(require
 
 @router.get("/{member_id}")
 async def get_member(member_id: str, current_user: dict = Depends(require_church_admin)):
-    org_id = current_user.get("tenant_id")
+    org_id = current_user.get("organizacao_id")
     member = await db.members.find_one({"id": member_id, "organizacao_id": org_id, "deletado_em": None})
     if not member:
         raise HTTPException(status_code=404, detail="Membro não encontrado")
@@ -100,7 +100,7 @@ async def get_member(member_id: str, current_user: dict = Depends(require_church
 
 @router.put("/{member_id}")
 async def update_member(member_id: str, data: MemberUpdate, current_user: dict = Depends(require_church_admin)):
-    org_id = current_user.get("tenant_id")
+    org_id = current_user.get("organizacao_id")
     query = {"id": member_id, "organizacao_id": org_id, "deletado_em": None}
     
     existing = await db.members.find_one(query)
@@ -116,7 +116,7 @@ async def update_member(member_id: str, data: MemberUpdate, current_user: dict =
 
 @router.delete("/{member_id}")
 async def delete_member(member_id: str, current_user: dict = Depends(require_church_admin)):
-    org_id = current_user.get("tenant_id")
+    org_id = current_user.get("organizacao_id")
     query = {"id": member_id, "organizacao_id": org_id, "deletado_em": None}
     
     result = await db.members.update_one(query, {"$set": {"deletado_em": datetime.now(timezone.utc)}})
@@ -128,7 +128,7 @@ async def delete_member(member_id: str, current_user: dict = Depends(require_chu
 # ==================== CUSTOM FIELDS ====================
 @router.post("/custom-fields")
 async def create_custom_field(data: Dict[str, Any], current_user: dict = Depends(require_church_admin)):
-    org_id = current_user.get("tenant_id")
+    org_id = current_user.get("organizacao_id")
     field = CustomField(**data, organizacao_id=org_id)
     doc = field.model_dump()
     await db.custom_fields.insert_one(doc)
@@ -136,14 +136,14 @@ async def create_custom_field(data: Dict[str, Any], current_user: dict = Depends
 
 @router.get("/custom-fields")
 async def list_custom_fields(current_user: dict = Depends(require_church_admin)):
-    org_id = current_user.get("tenant_id")
+    org_id = current_user.get("organizacao_id")
     fields = await db.custom_fields.find({"organizacao_id": org_id, "deletado_em": None}).sort("ordem", 1).to_list(100)
     return success_response(data=fields)
 
 # ==================== DIGITAL CARD ====================
 @router.post("/{member_id}/digital-card")
 async def generate_digital_card(member_id: str, current_user: dict = Depends(require_church_admin)):
-    org_id = current_user.get("tenant_id")
+    org_id = current_user.get("organizacao_id")
     
     member = await db.members.find_one({"id": member_id, "organizacao_id": org_id, "deletado_em": None})
     if not member:
@@ -170,7 +170,7 @@ async def generate_digital_card(member_id: str, current_user: dict = Depends(req
 
 @router.get("/{member_id}/digital-card")
 async def get_digital_card(member_id: str, current_user: dict = Depends(require_church_admin)):
-    org_id = current_user.get("tenant_id")
+    org_id = current_user.get("organizacao_id")
     card = await db.digital_cards.find_one({"membro_id": member_id, "organizacao_id": org_id, "deletado_em": None})
     if not card:
         raise HTTPException(status_code=404, detail="Cartão digital não encontrado")
@@ -179,7 +179,7 @@ async def get_digital_card(member_id: str, current_user: dict = Depends(require_
 # ==================== POSITION HISTORY ====================
 @router.post("/{member_id}/position-history")
 async def add_position_history(member_id: str, cargo_id: str, current_user: dict = Depends(require_church_admin)):
-    org_id = current_user.get("tenant_id")
+    org_id = current_user.get("organizacao_id")
     
     member = await db.members.find_one({"id": member_id, "organizacao_id": org_id, "deletado_em": None})
     if not member:
@@ -211,7 +211,7 @@ async def add_position_history(member_id: str, cargo_id: str, current_user: dict
 
 @router.get("/{member_id}/position-history")
 async def get_position_history(member_id: str, current_user: dict = Depends(require_church_admin)):
-    org_id = current_user.get("tenant_id")
+    org_id = current_user.get("organizacao_id")
     history = await db.position_history.find({"membro_id": member_id, "organizacao_id": org_id, "deletado_em": None}).sort("data_inicio", -1).to_list(100)
     return success_response(data=history)
 
@@ -222,7 +222,7 @@ async def list_birthdays(
     departamento_id: Optional[str] = None,
     current_user: dict = Depends(require_church_admin)
 ):
-    org_id = current_user.get("tenant_id")
+    org_id = current_user.get("organizacao_id")
     query = {"organizacao_id": org_id, "deletado_em": None, "data_nascimento": {"$ne": None}}
     
     if departamento_id:
@@ -254,7 +254,7 @@ async def list_birthdays(
 # ==================== MENU PERSONALIZATION ====================
 @router.post("/menu-personalization")
 async def personalize_menu(data: Dict[str, Any], current_user: dict = Depends(require_church_admin)):
-    org_id = current_user.get("tenant_id")
+    org_id = current_user.get("organizacao_id")
     user_id = current_user.get("user_id")
     
     menu = MenuPersonalization(**data, organizacao_id=org_id, atualizado_por=user_id)
@@ -271,6 +271,6 @@ async def personalize_menu(data: Dict[str, Any], current_user: dict = Depends(re
 
 @router.get("/menu-personalizations")
 async def get_menu_personalizations(current_user: dict = Depends(require_church_admin)):
-    org_id = current_user.get("tenant_id")
+    org_id = current_user.get("organizacao_id")
     personalizations = await db.menu_personalizations.find({"organizacao_id": org_id, "deletado_em": None}).to_list(100)
     return success_response(data=personalizations)

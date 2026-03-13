@@ -11,7 +11,7 @@ router = APIRouter(prefix="/church/teaching", tags=["Ensino"])
 
 @router.get("/academic-panel")
 async def get_academic_panel(current_user: dict = Depends(require_church_admin)):
-    org_id = current_user.get("tenant_id")
+    org_id = current_user.get("organizacao_id")
     tq = {"organizacao_id": org_id, "deletado_em": None}
     
     total_schools = await db.schools.count_documents({**tq, "status": "ativa"})
@@ -40,7 +40,7 @@ async def get_academic_panel(current_user: dict = Depends(require_church_admin))
 
 @router.get("/tracking/{member_id}")
 async def get_member_tracking(member_id: str, current_user: dict = Depends(require_church_admin)):
-    org_id = current_user.get("tenant_id")
+    org_id = current_user.get("organizacao_id")
     
     member = await db.members.find_one({"id": member_id, "organizacao_id": org_id, "deletado_em": None}, {"_id": 0, "nome": 1})
     if not member:
@@ -66,7 +66,7 @@ async def list_classes(
     escola_id: Optional[str] = None,
     current_user: dict = Depends(require_church_admin)
 ):
-    org_id = current_user.get("tenant_id")
+    org_id = current_user.get("organizacao_id")
     query = {"organizacao_id": org_id, "deletado_em": None}
     if status: query["status"] = status
     if escola_id: query["escola_id"] = escola_id
@@ -82,7 +82,7 @@ async def list_classes(
 
 @router.post("/classes/{turma_id}/members")
 async def add_class_members(turma_id: str, member_ids: List[str], current_user: dict = Depends(require_church_admin)):
-    org_id = current_user.get("tenant_id")
+    org_id = current_user.get("organizacao_id")
     
     # Check if class exists
     turma = await db.classes.find_one({"id": turma_id, "organizacao_id": org_id, "deletado_em": None})

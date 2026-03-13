@@ -135,7 +135,7 @@ async def payment_webhook(request: Request, payload: Dict[str, Any]):
 # ==================== ADMIN ROUTES ====================
 @router.post("/church/external-events", status_code=status.HTTP_201_CREATED)
 async def create_external_event(data: ExternalEventBase, current_user: dict = Depends(require_church_admin)):
-    org_id = current_user.get("tenant_id")
+    org_id = current_user.get("organizacao_id")
     
     # Check if slug is unique
     existing = await db.external_events.find_one({"slug": data.slug, "organizacao_id": org_id, "deletado_em": None})
@@ -150,7 +150,7 @@ async def create_external_event(data: ExternalEventBase, current_user: dict = De
 
 @router.get("/church/external-events")
 async def list_external_events(current_user: dict = Depends(require_church_admin)):
-    org_id = current_user.get("tenant_id")
+    org_id = current_user.get("organizacao_id")
     events = await db.external_events.find({"organizacao_id": org_id, "deletado_em": None}).to_list(100)
     
     for e in events:
@@ -160,7 +160,7 @@ async def list_external_events(current_user: dict = Depends(require_church_admin
 
 @router.get("/church/external-events/{event_id}/registrations")
 async def get_event_registrations(event_id: str, current_user: dict = Depends(require_church_admin)):
-    org_id = current_user.get("tenant_id")
+    org_id = current_user.get("organizacao_id")
     
     event = await db.external_events.find_one({"id": event_id, "organizacao_id": org_id, "deletado_em": None})
     if not event:
@@ -178,7 +178,7 @@ async def get_event_registrations(event_id: str, current_user: dict = Depends(re
 
 @router.post("/church/external-events/{event_id}/checkin")
 async def checkin_via_qr(event_id: str, qr_hash: str, current_user: dict = Depends(require_church_admin)):
-    org_id = current_user.get("tenant_id")
+    org_id = current_user.get("organizacao_id")
     user_id = current_user.get("user_id")
     
     # Find ticket by QR hash

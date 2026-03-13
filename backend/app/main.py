@@ -2,11 +2,14 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .core.config import settings
 from .core.database import close_db_connection
-from .routers import auth, members, departments, groups, teaching, financial, agenda, external_events, media, patrimony, support
+from .core.middleware import MultiTenantMiddleware, PlanFeatureMiddleware
+from .routers import auth, members, departments, groups, teaching, financial, agenda, external_events, media, patrimony, support, saas_routers, master_panel
 
 app = FastAPI(title=settings.PROJECT_NAME)
 
 # Middleware
+app.add_middleware(PlanFeatureMiddleware)
+app.add_middleware(MultiTenantMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
@@ -27,6 +30,8 @@ app.include_router(external_events.router, prefix="/api")
 app.include_router(media.router, prefix="/api")
 app.include_router(patrimony.router, prefix="/api")
 app.include_router(support.router, prefix="/api")
+app.include_router(saas_routers.router, prefix="/api")
+app.include_router(master_panel.router, prefix="/api")
 
 @app.get("/api/health")
 async def health_check():

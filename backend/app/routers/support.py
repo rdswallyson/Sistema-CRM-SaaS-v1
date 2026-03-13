@@ -21,7 +21,7 @@ async def list_tickets(
     prioridade: Optional[str] = None,
     current_user: dict = Depends(get_current_user)
 ):
-    org_id = current_user.get("tenant_id")
+    org_id = current_user.get("organizacao_id")
     user_id = current_user.get("user_id")
     role = current_user.get("role")
     
@@ -63,7 +63,7 @@ async def list_tickets(
 
 @router.post("/tickets", status_code=status.HTTP_201_CREATED)
 async def create_ticket(data: Dict[str, Any], current_user: dict = Depends(get_current_user)):
-    org_id = current_user.get("tenant_id")
+    org_id = current_user.get("organizacao_id")
     user_id = current_user.get("user_id")
     
     ticket = Ticket(
@@ -85,7 +85,7 @@ async def create_ticket(data: Dict[str, Any], current_user: dict = Depends(get_c
 
 @router.get("/tickets/{ticket_id}")
 async def get_ticket(ticket_id: str, current_user: dict = Depends(get_current_user)):
-    org_id = current_user.get("tenant_id")
+    org_id = current_user.get("organizacao_id")
     user_id = current_user.get("user_id")
     role = current_user.get("role")
     
@@ -108,7 +108,7 @@ async def get_ticket(ticket_id: str, current_user: dict = Depends(get_current_us
 
 @router.post("/tickets/{ticket_id}/messages")
 async def add_ticket_message(ticket_id: str, data: Dict[str, Any], current_user: dict = Depends(get_current_user)):
-    org_id = current_user.get("tenant_id")
+    org_id = current_user.get("organizacao_id")
     user_id = current_user.get("user_id")
     
     ticket = await db.tickets.find_one({"id": ticket_id, "organizacao_id": org_id, "deletado_em": None})
@@ -144,13 +144,13 @@ async def add_ticket_message(ticket_id: str, data: Dict[str, Any], current_user:
 # ==================== SLA CONFIG ====================
 @router.get("/sla-config")
 async def get_sla_configs(current_user: dict = Depends(require_church_admin)):
-    org_id = current_user.get("tenant_id")
+    org_id = current_user.get("organizacao_id")
     configs = await db.configuracoes_sla.find({"organizacao_id": org_id, "deletado_em": None}).to_list(10)
     return success_response(data=configs)
 
 @router.post("/sla-config")
 async def save_sla_config(data: Dict[str, Any], current_user: dict = Depends(require_church_admin)):
-    org_id = current_user.get("tenant_id")
+    org_id = current_user.get("organizacao_id")
     
     config = SLAConfig(**data, organizacao_id=org_id)
     doc = config.model_dump()
@@ -165,7 +165,7 @@ async def save_sla_config(data: Dict[str, Any], current_user: dict = Depends(req
 # ==================== DASHBOARD ====================
 @router.get("/dashboard/stats")
 async def support_dashboard(current_user: dict = Depends(require_church_admin)):
-    org_id = current_user.get("tenant_id")
+    org_id = current_user.get("organizacao_id")
     
     # Counts by status
     pipeline_status = [
@@ -190,12 +190,12 @@ async def support_dashboard(current_user: dict = Depends(require_church_admin)):
 # ==================== TUTORIALS & KB ====================
 @router.get("/tutorials")
 async def list_tutorials(current_user: dict = Depends(get_current_user)):
-    org_id = current_user.get("tenant_id")
+    org_id = current_user.get("organizacao_id")
     items = await db.tutorials.find({"organizacao_id": org_id, "deletado_em": None}).to_list(100)
     return success_response(data=items)
 
 @router.get("/knowledge-base")
 async def list_kb(current_user: dict = Depends(get_current_user)):
-    org_id = current_user.get("tenant_id")
+    org_id = current_user.get("organizacao_id")
     items = await db.knowledge_base.find({"organizacao_id": org_id, "deletado_em": None}).to_list(100)
     return success_response(data=items)
