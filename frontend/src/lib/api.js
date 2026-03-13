@@ -245,6 +245,30 @@ export const churchAPI = {
         api.post('/church/communication/send', null, { 
             params: { channel, recipient_ids: recipientIds, message, subject } 
         }),
+
+    // Patrimony
+    getPatrimony: (params) => api.get('/church/patrimony', { params }),
+    getPatrimonyItem: (id) => api.get(`/church/patrimony/${id}`),
+    createPatrimony: (data) => api.post('/church/patrimony', data),
+    updatePatrimony: (id, data) => api.put(`/church/patrimony/${id}`, data),
+    movePatrimony: (id, data) => api.post(`/church/patrimony/${id}/move`, data),
+    registerMaintenance: (id, data) => api.post(`/church/patrimony/${id}/maintenance`, data),
+    getPatrimonyDashboard: () => api.get('/church/patrimony/dashboard/stats'),
+    getPatrimonyCategories: () => api.get('/church/patrimony/categories'),
+    createPatrimonyCategory: (data) => api.post('/church/patrimony/categories', data),
+    getPatrimonyLocations: () => api.get('/church/patrimony/locations'),
+    createPatrimonyLocation: (data) => api.post('/church/patrimony/locations', data),
+
+    // Support
+    getTickets: (params) => api.get('/support/tickets', { params }),
+    getTicket: (id) => api.get(`/support/tickets/${id}`),
+    createTicket: (data) => api.post('/support/tickets', data),
+    addTicketMessage: (id, data) => api.post(`/support/tickets/${id}/messages`, data),
+    getSLAConfigs: () => api.get('/support/sla-config'),
+    saveSLAConfig: (data) => api.post('/support/sla-config', data),
+    getSupportDashboard: () => api.get('/support/dashboard/stats'),
+    getTutorials: () => api.get('/support/tutorials'),
+    getKnowledgeBase: () => api.get('/support/knowledge-base'),
     getCommunicationHistory: () => api.get('/church/communication/history'),
     
     // Birthday Greetings

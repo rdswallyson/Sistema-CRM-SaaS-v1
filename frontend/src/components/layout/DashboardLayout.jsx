@@ -47,6 +47,8 @@ import {
     Megaphone,
     StickyNote,
     CalendarDays,
+    Package,
+    LifeBuoy,
 } from 'lucide-react';
 
 const adminNavItems = [
@@ -115,6 +117,8 @@ const churchNavBase = [
     { path: '/dashboard/departments', label: 'Departamentos', icon: Church },
     { path: '/dashboard/discipleship', label: 'Discipulado', icon: BookOpen },
     { path: '/dashboard/communication', label: 'Comunicacao', icon: MessageSquare },
+    { path: '/dashboard/patrimony', label: 'Patrimônio', icon: Package },
+    { path: '/dashboard/support', label: 'Suporte', icon: LifeBuoy },
     { path: '/dashboard/settings', label: 'Configuracoes', icon: Settings },
 ];
 

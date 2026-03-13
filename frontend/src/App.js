@@ -14,6 +14,8 @@ import ChurchDashboard from "./pages/church/ChurchDashboard";
 import MemberProfilePage from "./pages/church/MemberProfilePage";
 import DepartmentsPage from "./pages/church/DepartmentsPage";
 import DepartmentDetailPage from "./pages/church/DepartmentDetailPage";
+import PatrimonyPage from "./pages/church/PatrimonyPage";
+import SupportPage from "./pages/church/SupportPage";
 
 // Groups Pages
 import GroupsList from "./pages/church/groups/GroupsList";
@@ -206,6 +208,8 @@ const AppRoutes = () => {
                 <Route path="financial/strategic" element={<FinPainelEstrategico />} />
                 <Route path="discipleship" element={<DiscipleshipPage />} />
                 <Route path="communication" element={<CommunicationPage />} />
+                <Route path="patrimony" element={<PatrimonyPage />} />
+                <Route path="support" element={<SupportPage />} />
                 <Route path="settings" element={<SettingsPage />} />
             </Route>
 
