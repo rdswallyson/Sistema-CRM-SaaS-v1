@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "buildCommand": "cd frontend && yarn install && yarn build",
+  "buildCommand": "cd frontend && npm install --legacy-peer-deps && npm run build",
   "outputDirectory": "frontend/build",
-  "installCommand": "cd frontend && yarn install",
+  "installCommand": "echo 'install handled in buildCommand'",
   "framework": null,
   "rewrites": [
     {
