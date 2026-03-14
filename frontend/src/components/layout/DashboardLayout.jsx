@@ -90,9 +90,9 @@ const defaultTeachingSubItems = [
 
 const defaultFinancialSubItems = [
     { path: '/dashboard/financial', key: 'fin_resumo', defaultLabel: 'Resumo', icon: LayoutDashboard, exact: true },
-    { path: '/dashboard/financial/transactions', key: 'fin_transacoes', defaultLabel: 'Transacoes', icon: CreditCard },
-    { path: '/dashboard/financial/reports', key: 'fin_relatorios', defaultLabel: 'Relatorios', icon: FileText },
-    { path: '/dashboard/financial/history', key: 'fin_historico', defaultLabel: 'Historico', icon: ClipboardList },
+    { path: '/dashboard/financial/transactions', key: 'fin_transacoes', defaultLabel: 'Transações', icon: CreditCard },
+    { path: '/dashboard/financial/reports', key: 'fin_relatorios', defaultLabel: 'Relatórios', icon: FileText },
+    { path: '/dashboard/financial/history', key: 'fin_historico', defaultLabel: 'Histórico', icon: ClipboardList },
     { path: '/dashboard/financial/categories', key: 'fin_categorias', defaultLabel: 'Categorias', icon: Tag },
     { path: '/dashboard/financial/accounts', key: 'fin_contas', defaultLabel: 'Contas', icon: Briefcase },
     { path: '/dashboard/financial/contacts', key: 'fin_contatos', defaultLabel: 'Contatos', icon: Users },
@@ -100,26 +100,26 @@ const defaultFinancialSubItems = [
     { path: '/dashboard/financial/lock-periods', key: 'fin_bloqueio', defaultLabel: 'Bloqueio', icon: Layers },
     { path: '/dashboard/financial/import', key: 'fin_importar', defaultLabel: 'Importar', icon: Download },
     { path: '/dashboard/financial/export', key: 'fin_exportar', defaultLabel: 'Exportar', icon: Download },
-    { path: '/dashboard/financial/strategic', key: 'fin_painel', defaultLabel: 'Painel Estrategico', icon: BarChart3 },
+    { path: '/dashboard/financial/strategic', key: 'fin_painel', defaultLabel: 'Painel Estratégico', icon: BarChart3 },
 ];
 
 const defaultAgendaSubItems = [
-    { path: '/dashboard/agenda/calendar', key: 'agenda_calendario', defaultLabel: 'Calendario', icon: CalendarDays, exact: true },
+    { path: '/dashboard/agenda/calendar', key: 'agenda_calendario', defaultLabel: 'Calendário', icon: CalendarDays, exact: true },
     { path: '/dashboard/agenda/events', key: 'agenda_eventos', defaultLabel: 'Eventos', icon: Calendar },
     { path: '/dashboard/agenda/announcements', key: 'agenda_avisos', defaultLabel: 'Mural de Avisos', icon: Megaphone },
-    { path: '/dashboard/agenda/notes', key: 'agenda_anotacoes', defaultLabel: 'Minhas Anotacoes', icon: StickyNote },
+    { path: '/dashboard/agenda/notes', key: 'agenda_anotacoes', defaultLabel: 'Minhas Anotações', icon: StickyNote },
     { path: '/dashboard/agenda/export', key: 'agenda_exportar', defaultLabel: 'Exportar', icon: Download },
-    { path: '/dashboard/agenda/notifications', key: 'agenda_notificacoes', defaultLabel: 'Central de Notificacoes', icon: Bell },
+    { path: '/dashboard/agenda/notifications', key: 'agenda_notificacoes', defaultLabel: 'Central de Notificações', icon: Bell },
 ];
 
 const churchNavBase = [
     { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, exact: true },
     { path: '/dashboard/departments', label: 'Departamentos', icon: Church },
     { path: '/dashboard/discipleship', label: 'Discipulado', icon: BookOpen },
-    { path: '/dashboard/communication', label: 'Comunicacao', icon: MessageSquare },
+    { path: '/dashboard/communication', label: 'Comunicação', icon: MessageSquare },
     { path: '/dashboard/patrimony', label: 'Patrimônio', icon: Package },
     { path: '/dashboard/support', label: 'Suporte', icon: LifeBuoy },
-    { path: '/dashboard/settings', label: 'Configuracoes', icon: Settings },
+    { path: '/dashboard/settings', label: 'Configurações', icon: Settings },
 ];
 
 export default function DashboardLayout({ variant = 'church' }) {
