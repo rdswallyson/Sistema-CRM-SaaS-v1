@@ -164,32 +164,32 @@ export const churchAPI = {
     deleteGroupCategory: (id) => api.delete(`/church/group-categories/${id}`),
 
     // Ensino (Teaching)
-    getEstudos: (params) => api.get('/church/estudos', { params }),
-    getEstudo: (id) => api.get(`/church/estudos/${id}`),
-    createEstudo: (data) => api.post('/church/estudos', data),
-    updateEstudo: (id, data) => api.put(`/church/estudos/${id}`, data),
-    deleteEstudo: (id) => api.delete(`/church/estudos/${id}`),
+    getEstudos: (params) => api.get('/church/teaching/estudos', { params }),
+    getEstudo: (id) => api.get(`/church/teaching/estudos/${id}`),
+    createEstudo: (data) => api.post('/church/teaching/estudos', data),
+    updateEstudo: (id, data) => api.put(`/church/teaching/estudos/${id}`, data),
+    deleteEstudo: (id) => api.delete(`/church/teaching/estudos/${id}`),
 
-    getEscolas: (params) => api.get('/church/escolas', { params }),
-    getEscola: (id) => api.get(`/church/escolas/${id}`),
-    createEscola: (data) => api.post('/church/escolas', data),
-    updateEscola: (id, data) => api.put(`/church/escolas/${id}`, data),
-    deleteEscola: (id) => api.delete(`/church/escolas/${id}`),
+    getEscolas: (params) => api.get('/church/teaching/escolas', { params }),
+    getEscola: (id) => api.get(`/church/teaching/escolas/${id}`),
+    createEscola: (data) => api.post('/church/teaching/escolas', data),
+    updateEscola: (id, data) => api.put(`/church/teaching/escolas/${id}`, data),
+    deleteEscola: (id) => api.delete(`/church/teaching/escolas/${id}`),
 
-    getTurmas: (params) => api.get('/church/turmas', { params }),
-    getTurma: (id) => api.get(`/church/turmas/${id}`),
-    createTurma: (data) => api.post('/church/turmas', data),
-    updateTurma: (id, data) => api.put(`/church/turmas/${id}`, data),
-    deleteTurma: (id) => api.delete(`/church/turmas/${id}`),
-    addTurmaMembers: (id, memberIds) => api.post(`/church/turmas/${id}/membros`, { member_ids: memberIds }),
-    removeTurmaMember: (turmaId, memberId) => api.delete(`/church/turmas/${turmaId}/membros/${memberId}`),
+    getTurmas: (params) => api.get('/church/teaching/turmas', { params }),
+    getTurma: (id) => api.get(`/church/teaching/turmas/${id}`),
+    createTurma: (data) => api.post('/church/teaching/turmas', data),
+    updateTurma: (id, data) => api.put(`/church/teaching/turmas/${id}`, data),
+    deleteTurma: (id) => api.delete(`/church/teaching/turmas/${id}`),
+    addTurmaMembers: (id, memberIds) => api.post(`/church/teaching/turmas/${id}/membros`, { member_ids: memberIds }),
+    removeTurmaMember: (turmaId, memberId) => api.delete(`/church/teaching/turmas/${turmaId}/membros/${memberId}`),
 
-    getProgressoMembro: (memberId) => api.get(`/church/progresso-ensino/membro/${memberId}`),
-    createProgresso: (data) => api.post('/church/progresso-ensino', data),
-    updateProgresso: (id, data) => api.put(`/church/progresso-ensino/${id}`, data),
-    deleteProgresso: (id) => api.delete(`/church/progresso-ensino/${id}`),
+    getProgressoMembro: (memberId) => api.get(`/church/teaching/tracking/${memberId}`),
+    createProgresso: (data) => api.post('/church/teaching/progresso-ensino', data),
+    updateProgresso: (id, data) => api.put(`/church/teaching/progresso-ensino/${id}`, data),
+    deleteProgresso: (id) => api.delete(`/church/teaching/progresso-ensino/${id}`),
 
-    getPainelAcademico: () => api.get('/church/ensino/painel-academico'),
+    getPainelAcademico: () => api.get('/church/teaching/painel-academico'),
 
     // Financial
     getFinContas: () => api.get('/church/fin/contas'),
@@ -235,12 +235,12 @@ export const churchAPI = {
     deleteMinistry: (id) => api.delete(`/church/ministries/${id}`),
     
     // Events (Enhanced Agenda)
-    getEvents: (params) => api.get('/church/events', { params }),
-    getEvent: (id) => api.get(`/church/events/${id}`),
-    createEvent: (data) => api.post('/church/events', data),
-    updateEvent: (id, data) => api.put(`/church/events/${id}`, data),
-    deleteEvent: (id) => api.delete(`/church/events/${id}`),
-    eventCheckin: (eventId, memberId) => api.post(`/church/events/${eventId}/checkin?member_id=${memberId}`),
+    getEvents: (params) => api.get('/church/agenda/events', { params }),
+    getEvent: (id) => api.get(`/church/agenda/events/${id}`),
+    createEvent: (data) => api.post('/church/agenda/events', data),
+    updateEvent: (id, data) => api.put(`/church/agenda/events/${id}`, data),
+    deleteEvent: (id) => api.delete(`/church/agenda/events/${id}`),
+    eventCheckin: (eventId, memberId) => api.post(`/church/agenda/events/${eventId}/checkin?member_id=${memberId}`),
     
     // Event Inscriptions
     getEventInscricoes: (eventId) => api.get(`/church/events/${eventId}/inscricoes`),
@@ -249,26 +249,26 @@ export const churchAPI = {
     confirmarPagamentoInscricao: (eventId, inscricaoId) => api.put(`/church/events/${eventId}/inscricoes/${inscricaoId}/confirmar-pagamento`),
     
     // Avisos (Announcements)
-    getAvisos: (params) => api.get('/church/avisos', { params }),
-    createAviso: (data) => api.post('/church/avisos', data),
-    updateAviso: (id, data) => api.put(`/church/avisos/${id}`, data),
-    deleteAviso: (id) => api.delete(`/church/avisos/${id}`),
+    getAvisos: (params) => api.get('/church/agenda/avisos', { params }),
+    createAviso: (data) => api.post('/church/agenda/avisos', data),
+    updateAviso: (id, data) => api.put(`/church/agenda/avisos/${id}`, data),
+    deleteAviso: (id) => api.delete(`/church/agenda/avisos/${id}`),
     
     // Anotacoes (Personal Notes)
-    getAnotacoes: () => api.get('/church/anotacoes'),
-    createAnotacao: (data) => api.post('/church/anotacoes', data),
-    updateAnotacao: (id, data) => api.put(`/church/anotacoes/${id}`, data),
-    deleteAnotacao: (id) => api.delete(`/church/anotacoes/${id}`),
+    getAnotacoes: () => api.get('/church/agenda/anotacoes'),
+    createAnotacao: (data) => api.post('/church/agenda/anotacoes', data),
+    updateAnotacao: (id, data) => api.put(`/church/agenda/anotacoes/${id}`, data),
+    deleteAnotacao: (id) => api.delete(`/church/agenda/anotacoes/${id}`),
     
     // Notificacoes
-    getNotificacoes: (params) => api.get('/church/notificacoes', { params }),
-    getNotificacoesCount: () => api.get('/church/notificacoes/count'),
-    marcarNotificacaoLida: (id) => api.put(`/church/notificacoes/${id}/lida`),
-    marcarTodasLidas: () => api.put('/church/notificacoes/marcar-todas-lidas'),
-    deleteNotificacao: (id) => api.delete(`/church/notificacoes/${id}`),
+    getNotificacoes: (params) => api.get('/church/agenda/notificacoes', { params }),
+    getNotificacoesCount: () => api.get('/church/agenda/notificacoes/count'),
+    marcarNotificacaoLida: (id) => api.put(`/church/agenda/notificacoes/${id}/lida`),
+    marcarTodasLidas: () => api.put('/church/agenda/notificacoes/marcar-todas-lidas'),
+    deleteNotificacao: (id) => api.delete(`/church/agenda/notificacoes/${id}`),
     
     // Calendario
-    getCalendario: (params) => api.get('/church/calendario', { params }),
+    getCalendario: (params) => api.get('/church/agenda/calendar', { params }),
     
     // Agenda Export
     exportarEventos: (params) => api.get('/church/agenda/exportar/eventos', { params }),
