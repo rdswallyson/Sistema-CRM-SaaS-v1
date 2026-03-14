@@ -23,6 +23,20 @@ class Organizacao(OrganizacaoBase, BaseSaaSModel):
     pass
 
 
+class OrganizacaoCreate(BaseModel):
+    nome: str
+    slug: Optional[str] = None
+    status: OrganizacaoStatus = OrganizacaoStatus.ATIVA
+    plano_id: Optional[str] = None
+
+
+class OrganizacaoUpdate(BaseModel):
+    nome: Optional[str] = None
+    slug: Optional[str] = None
+    status: Optional[OrganizacaoStatus] = None
+    plano_id: Optional[str] = None
+
+
 class PlanoStatus(str, Enum):
     ATIVO = "ativo"
     INATIVO = "inativo"
@@ -40,6 +54,30 @@ class PlanoBase(BaseModel):
 
 class Plano(PlanoBase, BaseSaaSModel):
     pass
+
+
+class PlanoCreate(BaseModel):
+    nome: str
+    descricao: Optional[str] = None
+    preco_mensal: float = 0.0
+    preco_anual: float = 0.0
+    limite_membros: int = 100
+    limite_eventos: int = 50
+    limite_armazenamento_gb: int = 5
+    recursos_ativos: Optional[Dict[str, Any]] = None
+    status: PlanoStatus = PlanoStatus.ATIVO
+
+
+class PlanoUpdate(BaseModel):
+    nome: Optional[str] = None
+    descricao: Optional[str] = None
+    preco_mensal: Optional[float] = None
+    preco_anual: Optional[float] = None
+    limite_membros: Optional[int] = None
+    limite_eventos: Optional[int] = None
+    limite_armazenamento_gb: Optional[int] = None
+    recursos_ativos: Optional[Dict[str, Any]] = None
+    status: Optional[PlanoStatus] = None
 
 
 class AssinaturaStatus(str, Enum):
@@ -60,6 +98,17 @@ class AssinaturaBase(BaseModel):
 
 class Assinatura(AssinaturaBase, BaseSaaSModel):
     pass
+
+
+class AssinaturaCreate(BaseModel):
+    organizacao_id: str
+    plano_id: str
+    status: AssinaturaStatus = AssinaturaStatus.ATIVA
+
+
+class AssinaturaUpdate(BaseModel):
+    plano_id: Optional[str] = None
+    status: Optional[AssinaturaStatus] = None
 
 
 class ConfiguracoesWhiteLabelBase(BaseModel):
@@ -108,6 +157,20 @@ class UsuarioMasterBase(BaseModel):
 
 class UsuarioMaster(UsuarioMasterBase, BaseSaaSModel):
     pass
+
+
+class UsuarioMasterCreate(BaseModel):
+    nome: str
+    email: EmailStr
+    senha: str
+    nivel: UsuarioMasterNivel = UsuarioMasterNivel.SUPORTE
+
+
+class UsuarioMasterUpdate(BaseModel):
+    nome: Optional[str] = None
+    email: Optional[EmailStr] = None
+    nivel: Optional[UsuarioMasterNivel] = None
+    ativo: Optional[bool] = None
 
 
 class LogAcessoMasterBase(BaseModel):

@@ -34,6 +34,7 @@ import {
     Play,
     ArrowRight,
     Sparkles,
+    Church,
 } from 'lucide-react';
 import { toast } from 'sonner';
 

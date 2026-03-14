@@ -23,9 +23,20 @@ api.interceptors.request.use(
     (error) => Promise.reject(error)
 );
 
-// Response interceptor to handle errors
+// Response interceptor to handle errors and normalize backend response format
 api.interceptors.response.use(
-    (response) => response,
+    (response) => {
+        // Backend returns { success, data, meta, errors }
+        // Normalize so that response.data is the actual data payload
+        if (response.data && typeof response.data === 'object' && 'success' in response.data) {
+            const normalized = { ...response };
+            normalized.data = response.data.data;
+            normalized.meta = response.data.meta;
+            normalized.rawResponse = response.data;
+            return normalized;
+        }
+        return response;
+    },
     (error) => {
         if (error.response?.status === 401) {
             localStorage.removeItem('token');
@@ -38,8 +49,8 @@ api.interceptors.response.use(
 
 // Auth API
 export const authAPI = {
-    login: (email, password) => api.post('/auth/login', { email, password }),
-    register: (data) => api.post('/auth/register', data),
+    login: (email, password) => api.post('/login', { email, password }),
+    register: (data) => api.post('/register', data),
     getMe: () => api.get('/auth/me'),
 };
 
@@ -275,9 +286,9 @@ export const churchAPI = {
         }),
 
     // Patrimony
-    getPatrimony: (params) => api.get('/church/patrimony', { params }),
+    getPatrimony: (params) => api.get('/church/patrimony/', { params }),
     getPatrimonyItem: (id) => api.get(`/church/patrimony/${id}`),
-    createPatrimony: (data) => api.post('/church/patrimony', data),
+    createPatrimony: (data) => api.post('/church/patrimony/', data),
     updatePatrimony: (id, data) => api.put(`/church/patrimony/${id}`, data),
     movePatrimony: (id, data) => api.post(`/church/patrimony/${id}/move`, data),
     registerMaintenance: (id, data) => api.post(`/church/patrimony/${id}/maintenance`, data),

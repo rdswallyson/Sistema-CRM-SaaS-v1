@@ -9,6 +9,7 @@ import uuid
 
 router = APIRouter(prefix="/church/departments", tags=["Departamentos"])
 
+@router.get("", include_in_schema=False)
 @router.get("/")
 async def list_departments(
     status: Optional[DepartmentStatus] = None,
@@ -47,6 +48,7 @@ async def list_departments(
 
     return success_response(data=departments)
 
+@router.post("", status_code=status.HTTP_201_CREATED, include_in_schema=False)
 @router.post("/", status_code=status.HTTP_201_CREATED)
 async def create_department(data: DepartmentCreate, current_user: dict = Depends(require_church_admin)):
     org_id = current_user.get("organizacao_id")

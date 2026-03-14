@@ -16,7 +16,9 @@ export const AuthProvider = ({ children }) => {
 
         try {
             const response = await authAPI.getMe();
-            setUser(response.data);
+            // Backend returns { success, data: { ...user } }
+            const userData = response.data?.data || response.data;
+            setUser(userData);
         } catch (error) {
             console.error('Failed to load user:', error);
             localStorage.removeItem('token');
@@ -34,7 +36,10 @@ export const AuthProvider = ({ children }) => {
 
     const login = async (email, password) => {
         const response = await authAPI.login(email, password);
-        const { token: newToken, user: userData } = response.data;
+        // Backend returns { success: true, data: { token, user, ... } }
+        const responseData = response.data?.data || response.data;
+        const newToken = responseData.token || responseData.access_token;
+        const userData = responseData.user;
         
         localStorage.setItem('token', newToken);
         localStorage.setItem('user', JSON.stringify(userData));
@@ -46,7 +51,10 @@ export const AuthProvider = ({ children }) => {
 
     const register = async (data) => {
         const response = await authAPI.register(data);
-        const { token: newToken, user: userData } = response.data;
+        // Backend returns { success: true, data: { token, user, ... } }
+        const responseData = response.data?.data || response.data;
+        const newToken = responseData.token || responseData.access_token;
+        const userData = responseData.user;
         
         localStorage.setItem('token', newToken);
         localStorage.setItem('user', JSON.stringify(userData));

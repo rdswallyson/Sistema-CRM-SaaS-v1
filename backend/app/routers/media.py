@@ -71,6 +71,7 @@ async def upload_media(
     
     return success_response(data=doc)
 
+@router.get("", include_in_schema=False)
 @router.get("/")
 async def list_media(
     tipo: Optional[MediaType] = None,

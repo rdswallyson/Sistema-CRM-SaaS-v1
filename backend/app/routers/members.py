@@ -5,7 +5,7 @@ from ..core.database import db
 from ..core.response import success_response, error_response
 from ..models.members import (
     Member, MemberCreate, MemberUpdate, MemberStatus, CustomField, CustomFieldType,
-    PositionHistory, DigitalCard, MenuPersonalization
+    PositionHistory, DigitalCard, MenuPersonalization, MemberCategory, MemberPosition
 )
 from ..utils.qrcode_generator import generate_digital_card_qr
 from datetime import datetime, timezone
@@ -22,6 +22,7 @@ def validate_cpf(cpf: str) -> bool:
         return False
     return True
 
+@router.get("", include_in_schema=False)
 @router.get("/")
 async def list_members(
     page: int = Query(1, ge=1),
@@ -68,6 +69,7 @@ async def list_members(
     
     return success_response(data=members, meta=meta)
 
+@router.post("", status_code=status.HTTP_201_CREATED, include_in_schema=False)
 @router.post("/", status_code=status.HTTP_201_CREATED)
 async def create_member(data: MemberCreate, current_user: dict = Depends(require_church_admin)):
     org_id = current_user.get("organizacao_id")
@@ -274,3 +276,131 @@ async def get_menu_personalizations(current_user: dict = Depends(require_church_
     org_id = current_user.get("organizacao_id")
     personalizations = await db.menu_personalizations.find({"organizacao_id": org_id, "deletado_em": None}).to_list(100)
     return success_response(data=personalizations)
+
+# ==================== MEMBER CATEGORIES ====================
+# Router separado para /church/member-categories
+member_categories_router = APIRouter(prefix="/church/member-categories", tags=["Categorias de Membros"])
+
+@member_categories_router.get("")
+@member_categories_router.get("/")
+async def list_member_categories(current_user: dict = Depends(require_church_admin)):
+    org_id = current_user.get("organizacao_id")
+    categories = await db.member_categories.find({"organizacao_id": org_id, "deletado_em": None}).sort("nome", 1).to_list(100)
+    return success_response(data=categories)
+
+@member_categories_router.post("")
+@member_categories_router.post("/")
+async def create_member_category(data: Dict[str, Any], current_user: dict = Depends(require_church_admin)):
+    org_id = current_user.get("organizacao_id")
+    category = MemberCategory(
+        nome=data["nome"],
+        descricao=data.get("descricao"),
+        cor=data.get("cor", "#6b7280"),
+        organizacao_id=org_id
+    )
+    doc = category.model_dump()
+    await db.member_categories.insert_one(doc)
+    return success_response(data=doc)
+
+@member_categories_router.put("/{category_id}")
+async def update_member_category(category_id: str, data: Dict[str, Any], current_user: dict = Depends(require_church_admin)):
+    org_id = current_user.get("organizacao_id")
+    query = {"id": category_id, "organizacao_id": org_id, "deletado_em": None}
+    existing = await db.member_categories.find_one(query)
+    if not existing:
+        raise HTTPException(status_code=404, detail="Categoria não encontrada")
+    update_data = {k: v for k, v in data.items() if v is not None}
+    update_data["atualizado_em"] = datetime.now(timezone.utc)
+    await db.member_categories.update_one(query, {"$set": update_data})
+    updated = await db.member_categories.find_one(query)
+    return success_response(data=updated)
+
+@member_categories_router.delete("/{category_id}")
+async def delete_member_category(category_id: str, current_user: dict = Depends(require_church_admin)):
+    org_id = current_user.get("organizacao_id")
+    query = {"id": category_id, "organizacao_id": org_id, "deletado_em": None}
+    result = await db.member_categories.update_one(query, {"$set": {"deletado_em": datetime.now(timezone.utc)}})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Categoria não encontrada")
+    return success_response(data={"message": "Categoria removida com sucesso"})
+
+# ==================== MEMBER POSITIONS ====================
+# Router separado para /church/member-positions
+member_positions_router = APIRouter(prefix="/church/member-positions", tags=["Cargos de Membros"])
+
+@member_positions_router.get("")
+@member_positions_router.get("/")
+async def list_member_positions(current_user: dict = Depends(require_church_admin)):
+    org_id = current_user.get("organizacao_id")
+    positions = await db.member_positions.find({"organizacao_id": org_id, "deletado_em": None}).sort("nome", 1).to_list(100)
+    return success_response(data=positions)
+
+@member_positions_router.post("")
+@member_positions_router.post("/")
+async def create_member_position(data: Dict[str, Any], current_user: dict = Depends(require_church_admin)):
+    org_id = current_user.get("organizacao_id")
+    position = MemberPosition(
+        nome=data["nome"],
+        descricao=data.get("descricao"),
+        nivel_hierarquico=data.get("nivel_hierarquico", data.get("nivel", 0)),
+        organizacao_id=org_id
+    )
+    doc = position.model_dump()
+    await db.member_positions.insert_one(doc)
+    return success_response(data=doc)
+
+@member_positions_router.put("/{position_id}")
+async def update_member_position(position_id: str, data: Dict[str, Any], current_user: dict = Depends(require_church_admin)):
+    org_id = current_user.get("organizacao_id")
+    query = {"id": position_id, "organizacao_id": org_id, "deletado_em": None}
+    existing = await db.member_positions.find_one(query)
+    if not existing:
+        raise HTTPException(status_code=404, detail="Cargo não encontrado")
+    update_data = {k: v for k, v in data.items() if v is not None}
+    update_data["atualizado_em"] = datetime.now(timezone.utc)
+    await db.member_positions.update_one(query, {"$set": update_data})
+    updated = await db.member_positions.find_one(query)
+    return success_response(data=updated)
+
+@member_positions_router.delete("/{position_id}")
+async def delete_member_position(position_id: str, current_user: dict = Depends(require_church_admin)):
+    org_id = current_user.get("organizacao_id")
+    query = {"id": position_id, "organizacao_id": org_id, "deletado_em": None}
+    result = await db.member_positions.update_one(query, {"$set": {"deletado_em": datetime.now(timezone.utc)}})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Cargo não encontrado")
+    return success_response(data={"message": "Cargo removido com sucesso"})
+
+# ==================== MENU CUSTOMIZATION ====================
+# Router separado para /church/menu-customization
+menu_customization_router = APIRouter(prefix="/church/menu-customization", tags=["Personalização do Menu"])
+
+@menu_customization_router.get("")
+@menu_customization_router.get("/")
+async def get_menu_customization(current_user: dict = Depends(require_church_admin)):
+    org_id = current_user.get("organizacao_id")
+    customizations = await db.menu_personalizations.find({"organizacao_id": org_id, "deletado_em": None}).to_list(100)
+    # Return as a dict keyed by chave_menu for easy frontend access
+    result = {item["chave_menu"]: item.get("label_customizado", item.get("label_padrao", "")) for item in customizations}
+    return success_response(data=result)
+
+@menu_customization_router.put("")
+@menu_customization_router.put("/")
+async def update_menu_customization(items: Dict[str, Any], current_user: dict = Depends(require_church_admin)):
+    org_id = current_user.get("organizacao_id")
+    user_id = current_user.get("user_id")
+    
+    for chave, label in items.items():
+        await db.menu_personalizations.update_one(
+            {"organizacao_id": org_id, "chave_menu": chave},
+            {"$set": {
+                "chave_menu": chave,
+                "label_customizado": label,
+                "organizacao_id": org_id,
+                "atualizado_por": user_id,
+                "atualizado_em": datetime.now(timezone.utc)
+            }},
+            upsert=True
+        )
+    
+    return success_response(data={"message": "Menu atualizado com sucesso"})

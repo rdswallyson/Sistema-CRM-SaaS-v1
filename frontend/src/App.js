@@ -173,6 +173,7 @@ const AppRoutes = () => {
                 <Route path="groups/:groupId" element={<GroupDetailPage />} />
                 
                 {/* Teaching sub-routes */}
+                <Route path="teaching" element={<Navigate to="/dashboard/teaching/studies" replace />} />
                 <Route path="teaching/studies" element={<EstudosPage />} />
                 <Route path="teaching/studies/add" element={<AddEstudo />} />
                 <Route path="teaching/studies/edit/:estudoId" element={<AddEstudo />} />
@@ -188,6 +189,7 @@ const AppRoutes = () => {
                 <Route path="events" element={<EventsPage />} />
                 
                 {/* Agenda sub-routes */}
+                <Route path="agenda" element={<Navigate to="/dashboard/agenda/calendar" replace />} />
                 <Route path="agenda/calendar" element={<CalendarioPage />} />
                 <Route path="agenda/events" element={<EventosPage />} />
                 <Route path="agenda/announcements" element={<MuralAvisosPage />} />

@@ -365,13 +365,13 @@ async def access_organizacao_as_admin(organizacao_id: str, current_user: dict = 
     log_data = LogAcessoMasterBase(
         master_id=current_user["user_id"],
         organizacao_acessada_id=organizacao_id,
-        acao=f"Acesso como admin à organização {organizacao["nome"]}",
+        acao=f"Acesso como admin à organização {organizacao['nome']}",
         ip="0.0.0.0" # TODO: Get actual IP
     )
     log = LogAcessoMaster(**log_data.model_dump())
     await db.logs_acesso_master.insert_one(log.model_dump())
     
-    return success_response(data={"access_token": temp_token, "message": f"Acesso concedido como admin à organização {organizacao["nome"]}"})
+    return success_response(data={"access_token": temp_token, "message": f"Acesso concedido como admin à organização {organizacao['nome']}"})
 
 @router.post("/admin/suspender-organizacao/{organizacao_id}")
 async def suspend_organizacao(organizacao_id: str, current_user: dict = Depends(require_super_admin)):
@@ -386,13 +386,13 @@ async def suspend_organizacao(organizacao_id: str, current_user: dict = Depends(
     log_data = LogAcessoMasterBase(
         master_id=current_user["user_id"],
         organizacao_acessada_id=organizacao_id,
-        acao=f"Organização {organizacao["nome"]} suspensa",
+        acao=f"Organização {organizacao['nome']} suspensa",
         ip="0.0.0.0" # TODO: Get actual IP
     )
     log = LogAcessoMaster(**log_data.model_dump())
     await db.logs_acesso_master.insert_one(log.model_dump())
     
-    return success_response(data={"message": f"Organização {organizacao["nome"]} suspensa com sucesso"})
+    return success_response(data={"message": f"Organização {organizacao['nome']} suspensa com sucesso"})
 
 @router.post("/admin/ativar-organizacao/{organizacao_id}")
 async def activate_organizacao(organizacao_id: str, current_user: dict = Depends(require_super_admin)):
@@ -407,13 +407,13 @@ async def activate_organizacao(organizacao_id: str, current_user: dict = Depends
     log_data = LogAcessoMasterBase(
         master_id=current_user["user_id"],
         organizacao_acessada_id=organizacao_id,
-        acao=f"Organização {organizacao["nome"]} ativada",
+        acao=f"Organização {organizacao['nome']} ativada",
         ip="0.0.0.0" # TODO: Get actual IP
     )
     log = LogAcessoMaster(**log_data.model_dump())
     await db.logs_acesso_master.insert_one(log.model_dump())
     
-    return success_response(data={"message": f"Organização {organizacao["nome"]} ativada com sucesso"})
+    return success_response(data={"message": f"Organização {organizacao['nome']} ativada com sucesso"})
 
 @router.post("/admin/alterar-plano/{organizacao_id}/{plano_id}")
 async def change_organizacao_plan(organizacao_id: str, plano_id: str, current_user: dict = Depends(require_super_admin)):
@@ -431,10 +431,10 @@ async def change_organizacao_plan(organizacao_id: str, plano_id: str, current_us
     log_data = LogAcessoMasterBase(
         master_id=current_user["user_id"],
         organizacao_acessada_id=organizacao_id,
-        acao=f"Plano da organização {organizacao["nome"]} alterado para {plano["nome"]}",
+        acao=f"Plano da organização {organizacao['nome']} alterado para {plano['nome']}",
         ip="0.0.0.0" # TODO: Get actual IP
     )
     log = LogAcessoMaster(**log_data.model_dump())
     await db.logs_acesso_master.insert_one(log.model_dump())
     
-    return success_response(data={"message": f"Plano da organização {organizacao["nome"]} alterado para {plano["nome"]} com sucesso"})
+    return success_response(data={"message": f"Plano da organização {organizacao['nome']} alterado para {plano['nome']} com sucesso"})

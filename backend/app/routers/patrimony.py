@@ -13,6 +13,52 @@ import uuid
 
 router = APIRouter(prefix="/church/patrimony", tags=["Patrimônio"])
 
+# ==================== DASHBOARD (deve vir antes de /{item_id}) ====================
+@router.get("/dashboard/stats")
+async def patrimony_dashboard(current_user: dict = Depends(require_church_admin)):
+    org_id = current_user.get("organizacao_id")
+    
+    # Total items and value
+    pipeline_total = [
+        {"$match": {"organizacao_id": org_id, "deletado_em": None}},
+        {"$group": {
+            "_id": None,
+            "total_items": {"$sum": 1},
+            "total_value": {"$sum": "$valor_aquisicao"}
+        }}
+    ]
+    total_stats = await db.patrimony.aggregate(pipeline_total).to_list(1)
+    total_stats = total_stats[0] if total_stats else {"total_items": 0, "total_value": 0}
+    
+    # By category
+    pipeline_cat = [
+        {"$match": {"organizacao_id": org_id, "deletado_em": None}},
+        {"$group": {"_id": "$categoria_id", "count": {"$sum": 1}}}
+    ]
+    cat_stats = await db.patrimony.aggregate(pipeline_cat).to_list(100)
+    
+    # By status
+    pipeline_status = [
+        {"$match": {"organizacao_id": org_id, "deletado_em": None}},
+        {"$group": {"_id": "$status", "count": {"$sum": 1}}}
+    ]
+    status_stats = await db.patrimony.aggregate(pipeline_status).to_list(100)
+    
+    # Maintenance costs history
+    pipeline_maint = [
+        {"$match": {"organizacao_id": org_id}},
+        {"$group": {"_id": None, "total_maint_cost": {"$sum": "$custo"}}}
+    ]
+    maint_stats = await db.patrimony_maintenances.aggregate(pipeline_maint).to_list(1)
+    maint_cost = maint_stats[0]["total_maint_cost"] if maint_stats else 0
+
+    return success_response(data={
+        "summary": total_stats,
+        "by_category": cat_stats,
+        "by_status": status_stats,
+        "total_maintenance_cost": maint_cost
+    })
+
 # ==================== CATEGORIES ====================
 @router.get("/categories")
 async def list_categories(current_user: dict = Depends(require_church_admin)):
@@ -44,6 +90,7 @@ async def create_location(data: Dict[str, Any], current_user: dict = Depends(req
     return success_response(data=doc)
 
 # ==================== PATRIMONY ====================
+@router.get("", include_in_schema=False)
 @router.get("/")
 async def list_patrimony(
     page: int = Query(1, ge=1),
@@ -82,6 +129,7 @@ async def list_patrimony(
     
     return success_response(data=items, meta=meta)
 
+@router.post("", status_code=status.HTTP_201_CREATED, include_in_schema=False)
 @router.post("/", status_code=status.HTTP_201_CREATED)
 async def create_patrimony(data: Dict[str, Any], current_user: dict = Depends(require_church_admin)):
     org_id = current_user.get("organizacao_id")
@@ -98,8 +146,6 @@ async def create_patrimony(data: Dict[str, Any], current_user: dict = Depends(re
 
     item = Patrimony(**data, organizacao_id=org_id)
     doc = item.model_dump()
-    # Convert date to string for MongoDB compatibility if needed, but pydantic usually handles it. 
-    # Let's ensure date is handled.
     if isinstance(doc.get("data_aquisicao"), (date, datetime)):
         doc["data_aquisicao"] = doc["data_aquisicao"].isoformat()
 
@@ -187,10 +233,8 @@ async def register_maintenance(item_id: str, data: Dict[str, Any], current_user:
     
     # If there is a cost, create a financial transaction
     if maintenance_cost and maintenance_cost > 0:
-        # We need a financial account to link. For simplicity, we'll try to find an active one or use a default.
         account = await db.accounts.find_one({"organizacao_id": org_id, "status": "active"})
         if not account:
-            # Fallback or error? Let's try to create a default one if none exists for this demo
             account_id = "default_account"
         else:
             account_id = account["id"]
@@ -236,48 +280,3 @@ async def register_maintenance(item_id: str, data: Dict[str, Any], current_user:
     await db.patrimony.update_one({"id": item_id}, {"$set": {"status": PatrimonyStatus.EM_MANUTENCAO}})
     
     return success_response(data=doc)
-
-@router.get("/dashboard/stats")
-async def patrimony_dashboard(current_user: dict = Depends(require_church_admin)):
-    org_id = current_user.get("organizacao_id")
-    
-    # Total items and value
-    pipeline_total = [
-        {"$match": {"organizacao_id": org_id, "deletado_em": None}},
-        {"$group": {
-            "_id": None,
-            "total_items": {"$sum": 1},
-            "total_value": {"$sum": "$valor_aquisicao"}
-        }}
-    ]
-    total_stats = await db.patrimony.aggregate(pipeline_total).to_list(1)
-    total_stats = total_stats[0] if total_stats else {"total_items": 0, "total_value": 0}
-    
-    # By category
-    pipeline_cat = [
-        {"$match": {"organizacao_id": org_id, "deletado_em": None}},
-        {"$group": {"_id": "$categoria_id", "count": {"$sum": 1}}}
-    ]
-    cat_stats = await db.patrimony.aggregate(pipeline_cat).to_list(100)
-    
-    # By status
-    pipeline_status = [
-        {"$match": {"organizacao_id": org_id, "deletado_em": None}},
-        {"$group": {"_id": "$status", "count": {"$sum": 1}}}
-    ]
-    status_stats = await db.patrimony.aggregate(pipeline_status).to_list(100)
-    
-    # Maintenance costs history
-    pipeline_maint = [
-        {"$match": {"organizacao_id": org_id}},
-        {"$group": {"_id": None, "total_maint_cost": {"$sum": "$custo"}}}
-    ]
-    maint_stats = await db.patrimony_maintenances.aggregate(pipeline_maint).to_list(1)
-    maint_cost = maint_stats[0]["total_maint_cost"] if maint_stats else 0
-
-    return success_response(data={
-        "summary": total_stats,
-        "by_category": cat_stats,
-        "by_status": status_stats,
-        "total_maintenance_cost": maint_cost
-    })

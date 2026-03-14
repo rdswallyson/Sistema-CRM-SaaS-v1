@@ -1,7 +1,8 @@
 from fastapi import APIRouter, HTTPException, Depends, status
+from fastapi.security import HTTPAuthorizationCredentials
 from typing import Dict, Any, Optional
 from pydantic import BaseModel, EmailStr
-from ..core.security import hash_password, verify_password, create_token, UserRole, create_refresh_token, get_current_user_from_refresh_token
+from ..core.security import hash_password, verify_password, create_token, UserRole, create_refresh_token, get_current_user_from_refresh_token, get_current_user
 from ..models.saas_models import Organizacao, OrganizacaoStatus, Plano, Assinatura, AssinaturaStatus
 from ..core.database import db
 from ..core.response import success_response, error_response
@@ -29,9 +30,12 @@ async def login(data: UserLogin):
     if not user or not verify_password(data.password, user["password"]):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Email ou senha incorretos")
     
+    # Remove password from response
+    user_data = {k: v for k, v in user.items() if k not in ["password", "_id"]}
+    
     access_token = create_token(user["id"], user["email"], user["role"], user.get("organizacao_id"))
     refresh_token = create_refresh_token(user["id"], user["email"], user["role"], user.get("organizacao_id"))
-    return success_response(data={"access_token": access_token, "refresh_token": refresh_token, "user": user})
+    return success_response(data={"token": access_token, "access_token": access_token, "refresh_token": refresh_token, "user": user_data})
 
 @router.post("/register")
 async def register(data: UserCreate):
@@ -45,8 +49,9 @@ async def register(data: UserCreate):
     # Create Organizacao
     organizacao = Organizacao(
         id=organizacao_id,
+        organizacao_id=organizacao_id,  # Self-referencing for multi-tenant base model
         nome=data.church_name or f"Igreja de {data.name}",
-        slug=data.church_name.lower().replace(" ", "-") if data.church_name else f"igreja-{data.name.lower().replace(" ", "-")}",
+        slug=data.church_name.lower().replace(' ', '-') if data.church_name else 'igreja-' + data.name.lower().replace(' ', '-'),
         status=OrganizacaoStatus.ATIVA
     )
     await db.organizacoes.insert_one(organizacao.model_dump())
@@ -60,16 +65,35 @@ async def register(data: UserCreate):
         "role": UserRole.ADMIN_CHURCH,
         "organizacao_id": organizacao_id,
         "is_active": True,
+        "deletado_em": None,
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     await db.users.insert_one(user)
     
+    user_data = {k: v for k, v in user.items() if k not in ["password", "_id"]}
+    
     access_token = create_token(user_id, data.email, UserRole.ADMIN_CHURCH, organizacao_id)
     refresh_token = create_refresh_token(user_id, data.email, UserRole.ADMIN_CHURCH, organizacao_id)
-    return success_response(data={"access_token": access_token, "refresh_token": refresh_token, "user": user})
+    return success_response(data={"token": access_token, "access_token": access_token, "refresh_token": refresh_token, "user": user_data})
+
+@router.get("/auth/me")
+@router.get("/me")
+async def get_me(current_user: dict = Depends(get_current_user)):
+    """Get current user info from token."""
+    user = await db.users.find_one({"id": current_user["user_id"], "deletado_em": None})
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuário não encontrado")
+    user_data = {k: v for k, v in user.items() if k not in ["password", "_id"]}
+    return success_response(data=user_data)
 
 @router.post("/refresh-token")
 async def refresh_access_token(data: TokenRefresh):
-    payload = await get_current_user_from_refresh_token(HTTPAuthorizationCredentials(scheme="Bearer", credentials=data.refresh_token))
-    new_access_token = create_token(payload["user_id"], payload["email"], payload["role"], payload.get("organizacao_id"))
-    return success_response(data={"access_token": new_access_token})
+    payload = get_current_user_from_refresh_token.__wrapped__ if hasattr(get_current_user_from_refresh_token, '__wrapped__') else None
+    try:
+        import jwt as pyjwt
+        from ..core.config import settings
+        decoded = pyjwt.decode(data.refresh_token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM])
+        new_access_token = create_token(decoded["user_id"], decoded["email"], decoded["role"], decoded.get("organizacao_id"))
+        return success_response(data={"access_token": new_access_token, "token": new_access_token})
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Refresh token inválido")
