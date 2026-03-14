@@ -1,0 +1,6 @@
+{
+  "presets": ["react-app"],
+  "plugins": [
+    ["react-refresh/babel", { "skipEnvCheck": true }]
+  ]
+}
